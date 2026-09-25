@@ -1,11 +1,9 @@
-import Logo from './Logo.jsx'
+import logo from './assets/logo.png'
 
 function App() {
   return (
     <div style={styles.container}>
-      <div style={styles.logoWrapper}>
-        <Logo />
-      </div>
+      <img src={logo} width={200} alt="HearAgain logo" style={styles.img} />
     </div>
   )
 }
@@ -15,15 +13,14 @@ const styles = {
     backgroundColor: '#FFF8E7',
     minHeight: '100vh',
     width: '100%',
-    margin: 0,
-    padding: 0,
-  },
-  logoWrapper: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '100vh',
-    width: '100%',
+    margin: 0,
+    padding: 0,
+  },
+  img: {
+    display: 'block',
   },
 }
 
