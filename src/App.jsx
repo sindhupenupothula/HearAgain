@@ -96,10 +96,32 @@ function App() {
       </div>
     )
   }
+  if (page === "dashboard") {
+    return (
+      <div style={{background:"#FFF8E7", minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center"}}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "16px", width: "100%", maxWidth: "400px" }}>
+          <div style={{
+            width: "55px", height: "55px", 
+            background: "#FFFFFF",
+            borderRadius: "50%", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center"
+          }}>
+            <img src={logo} alt="logo" style={{ width: "200px", height: "200px", objectFit: "contain" }} />
+          </div>
+          <h1 style={{ color: "#5C3317", fontSize: "35px", fontWeight: "bold", margin: 0, fontFamily:"'Brush Script MT',cursive" }}>
+            HearAgain
+          </h1>
+        </div>
+        <p style={{color:"#8D6E63", marginTop:"50px"}}>Home page loading...</p>
+      </div>
+    )
+  }
   // WELCOME PAGE
   return (
     <div style={{background:"#FFF8E7", minHeight:"100vh", width:"100%", display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center"}}>
-      <img src={logo} alt="HearAgain" style={{width:"220px"}} />
+      <img src={logo} alt="HearAgain" style={{width:"450px"}} />
       <h1 style={{fontFamily:"'Brush Script MT',cursive", color:"#5C3317", fontSize:"42px", marginTop:"10px"}}>HearAgain</h1>
       
       <button onClick={()=>setPage("login")} style={{background:"#5C3317", color:"white", width:"200px", height:"48px", borderRadius:"30px", border:"none", marginTop:"40px", fontSize:"18px"}}>Login</button>
