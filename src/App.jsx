@@ -5,6 +5,7 @@ function App() {
   const [page, setPage] = useState("welcome")
    const [showSuccess, setShowSuccess] = useState(false)
    const [agreed, setAgreed] = useState(false)
+   const[showPlus, setShowPlus] = useState(false)
    const [email, setEmail] = useState("")
    const [password, setPassword] = useState("")
    const [confirmPassword, setConfirmPassword] = useState("")
@@ -114,7 +115,7 @@ function App() {
             HearAgain
           </h1>
         </div>
-       <div style={{
+      <div style={{
   width: "90%",
   maxWidth: "400px",
   background: "#FFFBEB",
@@ -125,9 +126,10 @@ function App() {
   display: "flex",
   alignItems: "center",
   gap: "14px",
-  minHeight: "56px"
+  minHeight: "56px",
+  position:"relative"
 }}>
-  <span style={{fontSize:"30px", color:"#5C3317", cursor:"pointer", fontWeight:"300"}}>+</span>
+  <span onClick={()=>setShowPlus(!showPlus)} style={{fontSize:"30px", color:"#5C3317", cursor:"pointer", fontWeight:"300"}}>+</span>
   
   <p style={{ color: "#A68B6A", fontSize: "15px", margin: 0, flex:1, textAlign:"left", marginLeft:"4px" }}>
     Describe what you want to create...
@@ -145,6 +147,31 @@ function App() {
   }}>
     <span style={{ color: "white", fontSize: "18px", transform:"rotate(-45deg)" }}>➤</span>
   </div>
+
+  {showPlus && (
+    <div style={{
+      position:"absolute",
+      top:"60px",
+      left:"0",
+      background:"white",
+      width:"180px",
+      borderRadius:"16px",
+      boxShadow:"0 8px 20px rgba(0,0,0,0.15)",
+      padding:"8px",
+      zIndex:10,
+      border:"1px solid #F3E8D3"
+    }}>
+      <div style={{padding:"12px", display:"flex", alignItems:"center", gap:"12px", cursor:"pointer", borderRadius:"10px"}}>
+        <span>🖼️</span> <span style={{color:"#5C3317", fontSize:"14px"}}>Image</span>
+      </div>
+      <div style={{padding:"12px", display:"flex", alignItems:"center", gap:"12px", cursor:"pointer", borderRadius:"10px"}}>
+        <span>📷</span> <span style={{color:"#5C3317", fontSize:"14px"}}>Camera</span>
+      </div>
+      <div style={{padding:"12px", display:"flex", alignItems:"center", gap:"12px", cursor:"pointer", borderRadius:"10px"}}>
+        <span>🎥</span> <span style={{color:"#5C3317", fontSize:"14px"}}>Video</span>
+      </div>
+    </div>
+  )}
 </div>
 </div>
     )
