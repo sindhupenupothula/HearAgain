@@ -114,8 +114,39 @@ function App() {
             HearAgain
           </h1>
         </div>
-        <p style={{color:"#8D6E63", marginTop:"50px"}}>Home page loading...</p>
-      </div>
+       <div style={{
+  width: "90%",
+  maxWidth: "400px",
+  background: "#FFFBEB",
+  border: "1px solid #F3E8D3",
+  borderRadius: "30px",
+  padding: "12px 16px",
+  margin: "20px auto",
+  display: "flex",
+  alignItems: "center",
+  gap: "14px",
+  minHeight: "56px"
+}}>
+  <span style={{fontSize:"30px", color:"#5C3317", cursor:"pointer", fontWeight:"300"}}>+</span>
+  
+  <p style={{ color: "#A68B6A", fontSize: "15px", margin: 0, flex:1, textAlign:"left", marginLeft:"4px" }}>
+    Describe what you want to create...
+  </p>
+  
+  <div style={{
+    width: "38px",
+    height: "38px",
+    background: "#5C3317",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer"
+  }}>
+    <span style={{ color: "white", fontSize: "18px", transform:"rotate(-45deg)" }}>➤</span>
+  </div>
+</div>
+</div>
     )
   }
   // WELCOME PAGE
