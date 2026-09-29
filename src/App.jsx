@@ -20,7 +20,7 @@ function App() {
   const [chatMessages, setChatMessages] = useState([])
   const [isChatStarted, setIsChatStarted] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
-
+  const [activeTab, setActiveTab] = useState("home")
   const clearAndGo = (nextPage) => {
     setEmail(""); setPassword(""); setConfirmPassword("");
     setSignupError(""); setLoginError(""); setPage(nextPage);
@@ -220,31 +220,33 @@ function App() {
         </div>
         <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" style={{ display: "none" }} />
         <input type="file" ref={cameraInputRef} onChange={handleCameraSelect} accept="image/*" style={{ display: "none" }} />
-        {/* BOTTOM NAV - FINAL CORRECT */}
+        {/* BOTTOM NAV - ACTIVE LOGIC */}
         <div style={{ position: "fixed", bottom: "12px", left: "50%", transform: "translateX(-50%)", width: "92%", maxWidth: "400px", background: "#FFF8E7", borderRadius: "28px", display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 8px", boxShadow: "0 8px 25px rgba(0,0,0,0.12)", zIndex: 100 }}>
 
-          {/* Home - Active */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="#5C3317"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
-            <span style={{ background: "#5C3317", color: "white", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Home</span>
+          <div onClick={() => setActiveTab("home")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "home" ? 1 : 0.6 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill={activeTab === "home" ? "#5C3317" : "none"} stroke="#5C3317" strokeWidth="2"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
+            <span style={{ background: activeTab === "home" ? "#5C3317" : "transparent", color: activeTab === "home" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Home</span>
           </div>
 
-          {/* Chat */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2" strokeLinecap="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l2-5.5A8.5 8.5 0 0 1 21 11.5z" /><circle cx="8.5" cy="11.5" r="1" fill="#5C3317" /><circle cx="12" cy="11.5" r="1" fill="#5C3317" /><circle cx="15.5" cy="11.5" r="1" fill="#5C3317" /></svg>
-            <span style={{ fontSize: "12px", color: "#5C3317", marginTop: "4px", fontWeight: "500" }}>Chat</span>
+          {/* Chat - dotted bubble like in your photo */}
+          <div onClick={() => setActiveTab("chat")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "chat" ? 1 : 0.6 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 3h8a4 4 0 0 1 4 4v5a4 4 0 0 1-4 4h-2.5L9 20v-4H8a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4z" />
+              <circle cx="9.5" cy="9.5" r="1" fill="#5C3317" stroke="none" />
+              <circle cx="12" cy="9.5" r="1" fill="#5C3317" stroke="none" />
+              <circle cx="14.5" cy="9.5" r="1" fill="#5C3317" stroke="none" />
+            </svg>
+            <span style={{ background: activeTab === "chat" ? "#5C3317" : "transparent", color: activeTab === "chat" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Chat</span>
           </div>
 
-          {/* Voice Chat - mic correct */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10a7 7 0 0 0 14 0" /><line x1="12" y1="19" x2="12" y2="22" /><line x1="8" y1="22" x2="16" y2="22" /></svg>
-            <span style={{ fontSize: "12px", color: "#5C3317", marginTop: "4px", fontWeight: "500" }}>Voice Chat</span>
+          <div onClick={() => setActiveTab("voice")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "voice" ? 1 : 0.6 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><rect x="9" y="2" width="6" height="12" rx="3" fill={activeTab === "voice" ? "#5C3317" : "none"} /><path d="M5 10a7 7 0 0 0 14 0" /><line x1="12" y1="19" x2="12" y2="22" /><line x1="8" y1="22" x2="16" y2="22" /></svg>
+            <span style={{ background: activeTab === "voice" ? "#5C3317" : "transparent", color: activeTab === "voice" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Voice Chat</span>
           </div>
 
-          {/* Profile */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><circle cx="12" cy="7" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
-            <span style={{ fontSize: "12px", color: "#5C3317", marginTop: "4px", fontWeight: "500" }}>Profile</span>
+          <div onClick={() => setActiveTab("profile")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "profile" ? 1 : 0.6 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill={activeTab === "profile" ? "#5C3317" : "none"} stroke="#5C3317" strokeWidth="2"><circle cx="12" cy="7" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+            <span style={{ background: activeTab === "profile" ? "#5C3317" : "transparent", color: activeTab === "profile" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Profile</span>
           </div>
 
         </div>
