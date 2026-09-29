@@ -15,6 +15,9 @@ function App() {
   const cameraInputRef = useRef(null)
   const videoInputRef = useRef(null)
   const [selectedImages, setSelectedImages] = useState([])
+  const [inputText, setInputText] = useState("")
+  const [chatMessages, setChatMessages] = useState([])
+  const [isChatStarted, setIsChatStarted] = useState(false)
 
   const clearAndGo = (nextPage) => {
     setEmail("");
@@ -24,7 +27,12 @@ function App() {
     setLoginError("");
     setPage(nextPage);
   }
-
+  const handleSendMessage = () => {
+    if(!inputText.trim()) return;
+    setChatMessages([...chatMessages, {type: 'user', text: inputText}])
+    setIsChatStarted(true)
+    setInputText("")
+  }
   const handleImageSelect = (e) => {
     const file = e.target.files[0]
     if (file) {
@@ -149,9 +157,9 @@ function App() {
           <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px", marginTop: "10px" }}>This app is created only for <b>learning & helping purpose</b>. It is not intended to hurt anyone, any community or any beliefs.</p>
           <hr style={{ border: "0.5px solid #F5F5F5", margin: "18px 0" }} />
           <p style={{ fontSize: "12px", fontWeight: "bold", color: "#5C3317", background: "#FFF8E7", padding: "5px 10px", borderRadius: "20px", display: "inline-block" }}>💛 తెలుగు</p>
-          <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px", marginTop: "10px" }}>ఈ యాప్ కేవలం నేర్చుకోవడం మరియు సహాయం చేయడం కోసం మాత్రమే రూపొందించబడింది.</p>
+          <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px", marginTop: "10px" }}>ఈ యాప్ కేవలం నేర్చుకోవడం మరియు సహాయం చేయడం కోసం మాత్రమే రూపొందించబడింది. దీని ఉద్దేశ్యం ఎవరినీ, ఏ సమాజాన్ని లేదా ఏ నమ్మకాలను బాధపెట్టడం కాదు. డేటా అంతా సురక్షితంగా ఉంటుంది మరియు మీ అనుభవాన్ని మెరుగుపరచడానికి మాత్రమే ఉపయోగించబడుతుంది. దయచేసి దీనిని గౌరవప్రదంగా ఉపయోగించండి.</p>
           <p style={{ fontSize: "12px", fontWeight: "bold", color: "#5C3317", background: "#FFF8E7", padding: "5px 10px", borderRadius: "20px", display: "inline-block" }}>❤️ हिंदी</p>
-          <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px", marginTop: "10px" }}>यह ऐप सिर्फ़ सीखने और मदद करने के मकसद से बनाया गया है।</p>
+          <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px", marginTop: "10px" }}>यह ऐप सिर्फ़ सीखने और मदद करने के मकसद से बनाया गया है। इसका मकसद किसी व्यक्ति, समुदाय या किसी की मान्यताओं को ठेस पहुँचाना नहीं है। सारा डेटा सुरक्षित है और इसका इस्तेमाल सिर्फ़ आपके अनुभव को बेहतर बनाने के लिए किया जाता है। कृपया इसका सम्मान के साथ इस्तेमाल करें।</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "15px", width: "90%", maxWidth: "340px" }}>
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: "18px", height: "18px" }} id="tick" />
@@ -171,6 +179,15 @@ function App() {
           </div>
           <h1 style={{ color: "#5C3317", fontSize: "35px", fontWeight: "bold", margin: 0, fontFamily: "'Brush Script MT',cursive" }}>HearAgain</h1>
         </div>
+        {isChatStarted && (
+          <div style={{width: "90%", maxWidth: "400px", marginTop: "20px"}}>
+            {chatMessages.map((msg, i) => (
+              <div key={i} style={{background: msg.type === 'user' ? '#5C3317' : 'white', color: msg.type === 'user' ? 'white' : '#5C3317', padding: '10px', borderRadius: '12px', marginBottom: '10px'}}>
+                {msg.text}
+              </div>
+            ))}
+          </div>
+        )}
         <div style={{ width: "90%", maxWidth: "400px", background: "#FFFBEB", border: "1px solid #F3E8D3", borderRadius: "20px", padding: "12px 16px", margin: "20px auto", display: "flex", flexDirection: "column", gap: "10px", position: "relative" }}>
           {selectedImages.length > 0 && (
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -184,8 +201,8 @@ function App() {
           )}
           <div style={{ display: "flex", alignItems: "center", gap: "14px", width: "100%" }}>
             <span onClick={() => setShowPlus(!showPlus)} style={{ fontSize: "30px", color: "#5C3317", cursor: "pointer", fontWeight: "300" }}>+</span>
-            <p style={{ color: "#A68B6A", fontSize: "15px", margin: 0, flex: 1, textAlign: "left", marginLeft: "4px" }}>Describe what you want to create...</p>
-            <div style={{ width: "38px", height: "38px", background: "#5C3317", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+           <input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Describe what you want to create..." style={{flex: 1, border: "none", background: "transparent", outline: "none", color: "#5C3317", fontSize: "15px", marginLeft: "4px"}} />        
+            <div onClick={handleSendMessage} style={{ width: "38px", height: "38px", background: "#5C3317", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <span style={{ color: "white", fontSize: "18px", transform: "rotate(-45deg)" }}>➤</span>
             </div>
           </div>
