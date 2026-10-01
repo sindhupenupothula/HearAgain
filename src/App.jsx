@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import logo from "./assets/logo.png"
 
 function App() {
@@ -23,6 +23,31 @@ function App() {
   const [isChatStarted, setIsChatStarted] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const [activeTab, setActiveTab] = useState("home")
+  const [showNewChat, setShowNewChat] = useState(false);
+  const [newChatName, setNewChatName] = useState("");
+  const [chats, setChats] = useState([]);
+  const [currentUser, setCurrentUser] = useState(localStorage.getItem("currentUser") || "");
+  const [chatsLoaded, setChatsLoaded] = useState(false);
+  const [selectedChats, setSelectedChats] = useState([]);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+
+  // LOAD CHATS WHEN USER LOGINS
+  useEffect(() => {
+    if (currentUser) {
+      const saved = localStorage.getItem(`chats_${currentUser}`);
+      if (saved) {
+        setChats(JSON.parse(saved));
+      }
+      setChatsLoaded(true);
+    }
+  }, [currentUser]);
+  // SAVE CHATS - Load ayyaka mathrame save
+  useEffect(() => {
+    if (currentUser && chatsLoaded) {
+      localStorage.setItem(`chats_${currentUser}`, JSON.stringify(chats));
+    }
+  }, [chats, currentUser, chatsLoaded]);
+
   const clearAndGo = (nextPage) => {
     setEmail(""); setPassword(""); setConfirmPassword("");
     setSignupError(""); setLoginError(""); setPage(nextPage);
@@ -71,15 +96,29 @@ function App() {
   const handleImageSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name); setShowPlus(false); } }
   const handleCameraSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name || "camera_photo.jpg"); setShowPlus(false); } }
   const handleVideoSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name || "video.mp4"); setShowPlus(false); } }
-  const handleNewChatImage = (e) => { const file = e.target.files[0]; if (file) { setNewChatImage(URL.createObjectURL(file)); } }
+
+  // IMAGE UPLOAD FIX - Base64 tho save chestam
+  const handleNewChatImage = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setNewChatImage(ev.target.result);
+      reader.readAsDataURL(file);
+    }
+  }
 
   const handleLogin = () => {
     setLoginError(""); if (!email || !password) { setLoginError("Email/Mobile and Password ivvu mawa!"); return; }
     const savedUsers = JSON.parse(localStorage.getItem("users") || "[]");
     const foundUser = savedUsers.find(u => u.email === email && u.password === password);
     const isTestAccount = (email === "test@gmail.com" || email === "9876543210") && password === "test123";
-    if (foundUser || isTestAccount) { setShowSuccess(true); } else { setLoginError("Wrong credentials mawa! Please try again."); setPassword(""); }
+    if (foundUser || isTestAccount) {
+      localStorage.setItem("currentUser", email);
+      setCurrentUser(email);
+      setShowSuccess(true);
+    } else { setLoginError("Wrong credentials mawa! Please try again."); setPassword(""); }
   };
+
   const handleSignup = () => {
     setSignupError(""); if (!email || !password) { setSignupError("Email and Password fill cheyyi mawa!"); return; }
     if (password !== confirmPassword) { setSignupError("Passwords do not match!"); setPassword(""); setConfirmPassword(""); return; }
@@ -145,7 +184,6 @@ function App() {
   if (page === "dashboard") {
     return (
       <div style={{ background: "#FFF8E7", minHeight: "100vh", paddingBottom: "90px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        {/* HEADER */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", width: "100%", maxWidth: "400px", boxSizing: "border-box" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div style={{ width: "55px", height: "55px", background: "#FFFFFF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -154,14 +192,49 @@ function App() {
             <h1 style={{ color: "#5C3317", fontSize: "35px", fontWeight: "bold", margin: 0, fontFamily: "'Brush Script MT',cursive" }}>HearAgain</h1>
           </div>
           {activeTab === "chat" && (
-            <div onClick={() => { setNewChatImage(null); setActiveTab("newChat"); }} style={{ cursor: "pointer", width: "38px", height: "38px", borderRadius: "10px", border: "1.5px solid #4B2A15", display: "flex", alignItems: "center", justifyContent: "center", background: "white" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B2A15" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+            <div onClick={() => { setNewChatName(""); setNewChatImage(null); setShowNewChat(true); }} style={{ cursor: "pointer", width: "38px", height: "38px", borderRadius: "10px", background: "white", border: "1px solid #F3E8D3", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             </div>
           )}
         </div>
 
-        {/* HOME TAB - INPUT BOX RESTORED */}
-        {activeTab === "home" && (
+        {showNewChat && (
+          <div style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: "400px", bottom: 0, background: "#FFF8E7", zIndex: 200, display: "flex", flexDirection: "column", boxShadow: "0 0 20px rgba(0,0,0,0.1)" }}>
+            <div style={{ display: "flex", alignItems: "center", padding: "16px 20px", gap: "16px", borderBottom: "1px solid #F3E8D3" }}>
+              <div onClick={() => setShowNewChat(false)} style={{ cursor: "pointer" }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3E2723" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+              </div>
+              <h2 style={{ fontSize: "22px", fontWeight: "700", color: "#3E2723", margin: 0 }}>New Chat</h2>
+            </div>
+            <div style={{ flex: 1, padding: "20px", display: "flex", flexDirection: "column", overflowY: "auto" }}>
+              <label htmlFor="newChatFileInput" style={{ border: "2px dashed #8D6E63", borderRadius: "16px", width: "100%", height: "200px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", background: "#FFFBF0", overflow: "hidden", position: "relative" }}>
+                {newChatImage ? (
+                  <>
+                    <img src={newChatImage} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "14px" }} />
+                    <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNewChatImage(null); if (newChatFileRef.current) newChatFileRef.current.value = ""; }} style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.6)", borderRadius: "50%", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>✕</div>
+                  </>
+                ) : (
+                  <>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3E2723" strokeWidth="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
+                    <p style={{ marginTop: "12px", color: "#8D6E63", fontSize: "14px" }}>Tap to upload photo</p>
+                  </>
+                )}
+              </label>
+              <input id="newChatFileInput" type="file" ref={newChatFileRef} onChange={handleNewChatImage} accept="image/*" style={{ display: "none" }} />
+
+              <div style={{ marginTop: "28px", marginBottom: "24px" }}>
+                <label style={{ display: "block", fontSize: "16px", fontWeight: "600", color: "#3E2723", marginBottom: "10px" }}>Name</label>
+                <input value={newChatName} onChange={(e) => setNewChatName(e.target.value)} placeholder="Enter name" style={{ width: "100%", padding: "14px 16px", borderRadius: "12px", border: "1px solid #E0D0B0", background: "white", fontSize: "14px", outline: "none", boxSizing: "border-box" }} />
+              </div>
+              <div style={{ flex: 1 }}></div>
+              <button onClick={() => { if (newChatName.trim()) { const newChatObj = { id: Date.now(), name: newChatName, image: newChatImage }; setChats([...chats, newChatObj]); setNewChatName(""); setNewChatImage(null); if (newChatFileRef.current) newChatFileRef.current.value = ""; setShowNewChat(false); setActiveTab('chat'); } else { alert("Please enter name"); } }} style={{ width: "100%", padding: "16px", borderRadius: "12px", background: "#4B2E2A", color: "white", border: "none", fontSize: "16px", fontWeight: "600", cursor: "pointer" }}>
+                Create Chat
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "home" && !showNewChat && (
           <div style={{ width: "100%", maxWidth: "400px", display: "flex", flexDirection: "column", flex: 1, padding: "0 16px" }}>
             <div style={{ flex: 1, overflowY: "auto", marginTop: "10px" }}>
               {chatMessages.map((msg, i) => (
@@ -174,14 +247,11 @@ function App() {
               ))}
               {!isChatStarted && (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", position: "relative", width: "100%", flex: 1, height: "65vh", overflow: "hidden" }}>
-                  {/* LOGO - SCREEN MIDDLE LO, PEDDAGA */}
-                  <img src={logo} alt="bg-logo" style={{ width: "500px", height: "500px", objectFit: "contain", opacity: 0.13, position: "absolute", top: "40%", left: "50%", transform: "translate(-50%, -50%)", pointerEvents: "none" }} />
+                  <img src={logo} alt="bg-logo" style={{ width: "500px", height: "500px", objectFit: "contain", opacity: 0.25, position: "absolute", top: "40%", left: "50%", transform: "translate(-50%, -50%)", pointerEvents: "none" }} />
                   <p style={{ color: "#3E2723", fontWeight: "700", fontSize: "20px", fontFamily: "serif", position: "relative", zIndex: 1, marginTop: "120px" }}>What do you want to create today?</p>
                 </div>
               )}
             </div>
-
-            {/* PREVIEW IMAGES */}
             {selectedImages.length > 0 && (
               <div style={{ display: "flex", gap: "8px", marginBottom: "10px", overflowX: "auto" }}>
                 {selectedImages.map((im, idx) => (
@@ -192,8 +262,6 @@ function App() {
                 ))}
               </div>
             )}
-
-            {/* PLUS OPTIONS */}
             {showPlus && (
               <div style={{ background: "white", borderRadius: "16px", padding: "12px", display: "flex", gap: "20px", marginBottom: "10px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
                 <div onClick={() => cameraInputRef.current?.click()} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
@@ -210,8 +278,6 @@ function App() {
                 </div>
               </div>
             )}
-
-            {/* INPUT BOX - Nee photo lo green mark chesindi */}
             <div style={{ background: "white", borderRadius: "30px", padding: "6px 6px 6px 12px", display: "flex", alignItems: "center", gap: "8px", boxShadow: "0 2px 10px rgba(0,0,0,0.08)", border: "1px solid #F3E5C6", marginBottom: "10px" }}>
               <div onClick={() => setShowPlus(!showPlus)} style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#FFF8E7", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "20px", color: "#5C3317" }}>
                 {showPlus ? "✕" : "+"}
@@ -227,56 +293,72 @@ function App() {
           </div>
         )}
 
-        {activeTab === "chat" && (
+        {activeTab === "chat" && !showNewChat && (
           <div style={{ background: "#FFF8E7", width: "100%", maxWidth: "400px", padding: "0 16px" }}>
             <div style={{ background: "#F3E5C6", borderRadius: "12px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px", marginTop: "4px", marginBottom: "16px" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7355" strokeWidth="2"><circle cx="11" cy="11" r="6" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>
               <input placeholder="Search" style={{ border: "none", background: "transparent", outline: "none", flex: 1, color: "#5C3317", fontSize: "15px" }} />
             </div>
-            {chatMessages.length === 0 ? (
+            {chats.length === 0 ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "60px", textAlign: "center" }}>
                 <div style={{ fontSize: "60px", marginBottom: "15px" }}>💬</div>
                 <p style={{ color: "#5C3317", fontWeight: "700", fontSize: "18px", margin: "0 0 6px 0" }}>No chats yet</p>
                 <p style={{ color: "#8B7355", fontSize: "14px", margin: 0 }}>Start a conversation to see it here</p>
               </div>
             ) : (
-              <div style={{ display: "flex", gap: "14px", padding: "14px 12px", borderBottom: "1px solid #F5E6C8", cursor: "pointer", alignItems: "center", background: "white", borderRadius: "12px" }}>
-                <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#F5E6C8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>🦻</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontWeight: "700", color: "#5C3317", fontSize: "16px" }}>HearAgain Assistant</span>
-                    <span style={{ fontSize: "12px", color: "#8B7355" }}>Now</span>
+              chats.map((chat) => (
+                <div
+                  key={chat.id}
+                  onClick={() => {
+                    if (selectedChats.length > 0) {
+                      if (selectedChats.includes(chat.id)) {
+                        setSelectedChats(selectedChats.filter(id => id !== chat.id))
+                      } else {
+                        setSelectedChats([...selectedChats, chat.id])
+                      }
+                    }
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setSelectedChats([chat.id]);
+                  }}
+                  onTouchStart={(e) => {
+                    // mobile lo long press kosam
+                    const timer = setTimeout(() => setSelectedChats([chat.id]), 600);
+                    e.currentTarget.timer = timer;
+                  }}
+                  onTouchEnd={(e) => clearTimeout(e.currentTarget.timer)}
+                  style={{
+                    display: "flex",
+                    gap: "14px",
+                    padding: "14px 12px",
+                    cursor: "pointer",
+                    alignItems: "center",
+                    background: selectedChats.includes(chat.id) ? "#D7B78F" : "white",
+                    borderRadius: "12px",
+                    marginBottom: "10px",
+                    border: selectedChats.includes(chat.id) ? "2px solid #5C3317" : "none"
+                  }}>                  <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#F5E6C8", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {chat.image ? <img src={chat.image} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ fontWeight: "bold", color: "#5C3317", fontSize: "20px" }}>{chat.name[0]?.toUpperCase()}</div>}
                   </div>
-                  <span style={{ fontSize: "13px", color: "#8B7355", width: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block", marginTop: "2px" }}>{chatMessages[chatMessages.length - 1]?.text || "Image"}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ fontWeight: "700", color: "#5C3317", fontSize: "16px" }}>{chat.name}</span>
+                      <span style={{ fontSize: "12px", color: "#8B7355" }}>Now</span>
+                    </div>
+                    <span style={{ fontSize: "13px", color: "#8B7355", marginTop: "2px", display: "block" }}>Tap to start chatting</span>
+                  </div>
                 </div>
-              </div>
+              ))
             )}
           </div>
         )}
 
-        {activeTab === "newChat" && (
-          <div style={{ width: "100%", maxWidth: "400px", padding: "0 16px", background: "#FFF8E7", flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 0 20px 0" }}>
-              <div onClick={() => { setNewChatImage(null); if (newChatFileRef.current) newChatFileRef.current.value = ""; setActiveTab("chat"); }} style={{ cursor: "pointer", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
-              </div>
-              <h2 style={{ margin: 0, color: "#3E2723", fontSize: "24px", fontWeight: "700" }}>New Chat</h2>
-            </div>
-            <div onClick={() => newChatFileRef.current?.click()} style={{ width: "100%", height: "240px", border: "2px dashed #A0826D", borderRadius: "20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", background: "#FFFBF0", gap: "12px", overflow: "hidden", position: "relative" }}>
-              {newChatImage ? (
-                <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                  <img src={newChatImage} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "18px" }} />
-                  <div onClick={(e) => { e.stopPropagation(); setNewChatImage(null); if (newChatFileRef.current) newChatFileRef.current.value = ""; }} style={{ position: "absolute", top: "8px", right: "8px", width: "28px", height: "28px", background: "rgba(0,0,0,0.7)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", cursor: "pointer", fontSize: "16px" }}>✕</div>
-                </div>
-              ) : (
-                <>
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#3E2723" strokeWidth="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
-                  <span style={{ color: "#8B7355", fontSize: "15px" }}>Tap to upload photo</span>
-                </>
-              )}
-            </div>
-            <input type="file" ref={newChatFileRef} onChange={handleNewChatImage} accept="image/*" style={{ display: "none" }} />
-          </div>
+        {activeTab === "voice" && !showNewChat && (
+          <div style={{ padding: "40px" }}><h2 style={{ color: "#5C3317" }}>Voice Chat Coming Soon</h2></div>
+        )}
+        {activeTab === "profile" && !showNewChat && (
+          <div style={{ padding: "40px" }}><h2 style={{ color: "#5C3317" }}>Profile - {currentUser} <br /><button onClick={() => { setPage("welcome"); }}>Logout</button></h2></div>
         )}
 
         <div style={{ position: "fixed", bottom: "12px", left: "50%", transform: "translateX(-50%)", width: "92%", maxWidth: "400px", background: "#FFF8E7", borderRadius: "28px", display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 8px", boxShadow: "0 8px 25px rgba(0,0,0,0.12)", zIndex: 100 }}>
@@ -297,7 +379,7 @@ function App() {
             <span style={{ background: activeTab === "profile" ? "#5C3317" : "transparent", color: activeTab === "profile" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Profile</span>
           </div>
         </div>
-      </div>
+      </div >
     )
   }
   return (
