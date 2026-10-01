@@ -34,13 +34,11 @@ function App() {
     setIsChatStarted(true);
     const promptText = inputText.trim();
     setInputText(""); setSelectedImages([]); setSelectedFileName(""); setIsTyping(true);
-
     const cleanPrompt = promptText;
     const lower = cleanPrompt.toLowerCase();
     const hasImages = userMsg.images && userMsg.images.length > 0;
     const isVideo = lower.includes("video");
     const isImageToPrompt = hasImages;
-
     if (isImageToPrompt) {
       let promptTextOut = `Aesthetic photo of ${(userMsg.fileName || "uploaded image").replace(/\.[^/.]+$/, "")}, highly detailed, 8k, cinematic lighting, photorealistic`;
       try {
@@ -68,7 +66,6 @@ function App() {
       let h = 0; for (let i = 0; i < cleanPrompt.length; i++) { h = cleanPrompt.charCodeAt(i) + ((h << 5) - h); }
       const mySeed = Math.abs(h);
       const isGirlPrompt = lower.includes("girl") || lower.includes("college") || lower.includes("woman") || lower.includes("lady") || lower.includes("female");
-
       let imageUrl;
       if (isGirlPrompt) {
         const safeQuery = cleanPrompt.toLowerCase().replace(/girl/g, "woman").replace(/college girl/g, "college woman portrait");
@@ -78,7 +75,6 @@ function App() {
         if (lower.includes("sun")) safePrompt = safePrompt + ", bright sunny day, beautiful sky, 8k";
         imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(safePrompt)}?width=768&height=768&seed=${mySeed}&model=turbo&nologo=true&nofeed=true`;
       }
-
       setTimeout(() => {
         setChatMessages(prev => [...prev, { type: 'ai', text: 'Image generated ✨', imageUrl: imageUrl, isImage: true }]);
         setIsTyping(false);
@@ -162,7 +158,7 @@ function App() {
   if (page === "dashboard") {
     return (
       <div style={{ background: "#FFF8E7", minHeight: "100vh", paddingBottom: "90px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        {/* FIXED HEADER - HearAgain + New Chat icon same line */}
+        {/* HEADER WITH NEW CHAT ICON */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", width: "100%", maxWidth: "400px", boxSizing: "border-box" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div style={{ width: "55px", height: "55px", background: "#FFFFFF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -171,7 +167,7 @@ function App() {
             <h1 style={{ color: "#5C3317", fontSize: "35px", fontWeight: "bold", margin: 0, fontFamily: "'Brush Script MT',cursive" }}>HearAgain</h1>
           </div>
           {activeTab === "chat" && (
-            <div onClick={() => setActiveTab("newChat")} style={{ cursor: "pointer", width: "38px", height: "38px", borderRadius: "10px", border: "1.5px solid #4B2A15", display: "flex", alignItems: "center", justifyContent: "center", background: "white" }}>
+            <div onClick={() => { setSelectedImages([]); setSelectedFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; setActiveTab("newChat"); }} style={{ cursor: "pointer", width: "38px", height: "38px", borderRadius: "10px", border: "1.5px solid #4B2A15", display: "flex", alignItems: "center", justifyContent: "center", background: "white" }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B2A15" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -180,7 +176,7 @@ function App() {
           )}
         </div>
 
-        {isChatStarted && (
+        {isChatStarted && activeTab === "home" && (
           <div style={{ width: "90%", maxWidth: "400px", marginTop: "20px" }}>
             {chatMessages.map((msg, i) => (
               <div key={i} style={{ background: msg.type === 'user' ? '#5C3317' : 'white', color: msg.type === 'user' ? 'white' : '#5C3317', padding: '10px', borderRadius: '12px', marginBottom: '10px' }}>
@@ -205,7 +201,6 @@ function App() {
 
         {activeTab === "chat" && (
           <div style={{ background: "#FFF8E7", width: "100%", maxWidth: "400px", padding: "0 16px" }}>
-            {/* SEARCH BAR - paike */}
             <div style={{ background: "#F3E5C6", borderRadius: "12px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px", marginTop: "4px", marginBottom: "16px" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7355" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="6" />
@@ -213,7 +208,6 @@ function App() {
               </svg>
               <input placeholder="Search" style={{ border: "none", background: "transparent", outline: "none", flex: 1, color: "#5C3317", fontSize: "15px" }} />
             </div>
-
             {chatMessages.length === 0 ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "60px", textAlign: "center" }}>
                 <div style={{ fontSize: "60px", marginBottom: "15px" }}>💬</div>
@@ -234,6 +228,54 @@ function App() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === "newChat" && (
+          <div style={{ width: "100%", maxWidth: "400px", padding: "0 16px", background: "#FFF8E7", flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 0 20px 0" }}>
+              <div onClick={() => { setSelectedImages([]); setSelectedFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; setActiveTab("chat"); }} style={{ cursor: "pointer", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+              </div>
+              <h2 style={{ margin: 0, color: "#3E2723", fontSize: "24px", fontWeight: "700" }}>New Chat</h2>
+            </div>
+
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                width: "100%",
+                height: "240px",
+                border: "2px dashed #A0826D",
+                borderRadius: "20px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                background: "#FFFBF0",
+                gap: "12px",
+                overflow: "hidden",
+                position: "relative"
+              }}
+            >
+              {selectedImages[0] ? (
+                <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                  <img src={selectedImages[0]} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "18px" }} />
+                  <div
+                    onClick={(e) => { e.stopPropagation(); setSelectedImages([]); setSelectedFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                    style={{ position: "absolute", top: "8px", right: "8px", width: "28px", height: "28px", background: "rgba(0,0,0,0.7)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", cursor: "pointer", fontSize: "16px" }}
+                  >
+                    ✕
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#3E2723" strokeWidth="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /><circle cx="17.5" cy="8.5" r="0.5" fill="#3E2723" /></svg>
+                  <span style={{ color: "#8B7355", fontSize: "15px" }}>Tap to upload photo</span>
+                </>
+              )}
+            </div>
+            <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" style={{ display: "none" }} />
           </div>
         )}
 
@@ -273,4 +315,4 @@ function App() {
     </div>
   );
 }
-export default App;.
+export default App;
