@@ -31,7 +31,6 @@ function App() {
   const [selectedChats, setSelectedChats] = useState([]);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
-  // LOAD CHATS WHEN USER LOGINS
   useEffect(() => {
     if (currentUser) {
       const saved = localStorage.getItem(`chats_${currentUser}`);
@@ -41,7 +40,7 @@ function App() {
       setChatsLoaded(true);
     }
   }, [currentUser]);
-  // SAVE CHATS - Load ayyaka mathrame save
+
   useEffect(() => {
     if (currentUser && chatsLoaded) {
       localStorage.setItem(`chats_${currentUser}`, JSON.stringify(chats));
@@ -97,7 +96,6 @@ function App() {
   const handleCameraSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name || "camera_photo.jpg"); setShowPlus(false); } }
   const handleVideoSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name || "video.mp4"); setShowPlus(false); } }
 
-  // IMAGE UPLOAD FIX - Base64 tho save chestam
   const handleNewChatImage = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -184,19 +182,51 @@ function App() {
   if (page === "dashboard") {
     return (
       <div style={{ background: "#FFF8E7", minHeight: "100vh", paddingBottom: "90px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", width: "100%", maxWidth: "400px", boxSizing: "border-box" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div style={{ width: "55px", height: "55px", background: "#FFFFFF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <img src={logo} alt="logo" style={{ width: "200px", height: "200px", objectFit: "contain" }} />
+
+        {/* HEADER - NORMAL vs SELECTED MODE */}
+        {selectedChats.length > 0 && activeTab === "chat" ? (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", width: "100%", maxWidth: "400px", boxSizing: "border-box", background: "#FFF8E7", borderBottom: "1px solid #F3E8D3" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              <div onClick={() => setSelectedChats([])} style={{ cursor: "pointer" }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+              </div>
+              <span style={{ fontWeight: "700", fontSize: "19px", color: "#5C3317" }}>{selectedChats.length}</span>
             </div>
-            <h1 style={{ color: "#5C3317", fontSize: "35px", fontWeight: "bold", margin: 0, fontFamily: "'Brush Script MT',cursive" }}>HearAgain</h1>
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+
+              {/* PIN ICON - Clean */}
+              <div style={{ cursor: "pointer" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><line x1="12" y1="17" x2="12" y2="22" /><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" /></svg>
+              </div>
+
+              {/* DUSTBIN ICON - Clean */}
+              <div onClick={() => setShowDeletePopup(true)} style={{ cursor: "pointer" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
+              </div>
+
+              {/* MUTE ICON - Clean */}
+              <div style={{ cursor: "pointer" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M13 5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h3l4 4V5z" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
+              </div>
+
+            </div>
           </div>
-          {activeTab === "chat" && (
-            <div onClick={() => { setNewChatName(""); setNewChatImage(null); setShowNewChat(true); }} style={{ cursor: "pointer", width: "38px", height: "38px", borderRadius: "10px", background: "white", border: "1px solid #F3E8D3", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        ) : (
+          // ... nee normal header code same undali
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", width: "100%", maxWidth: "400px", boxSizing: "border-box" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ width: "55px", height: "55px", background: "#FFFFFF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <img src={logo} alt="logo" style={{ width: "200px", height: "200px", objectFit: "contain" }} />
+              </div>
+              <h1 style={{ color: "#5C3317", fontSize: "35px", fontWeight: "bold", margin: 0, fontFamily: "'Brush Script MT',cursive" }}>HearAgain</h1>
             </div>
-          )}
-        </div>
+            {activeTab === "chat" && (
+              <div onClick={() => { setNewChatName(""); setNewChatImage(null); setShowNewChat(true); }} style={{ cursor: "pointer", width: "38px", height: "38px", borderRadius: "10px", background: "white", border: "1px solid #F3E8D3", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              </div>
+            )}
+          </div>
+        )}
 
         {showNewChat && (
           <div style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: "400px", bottom: 0, background: "#FFF8E7", zIndex: 200, display: "flex", flexDirection: "column", boxShadow: "0 0 20px rgba(0,0,0,0.1)" }}>
@@ -318,16 +348,7 @@ function App() {
                       }
                     }
                   }}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    setSelectedChats([chat.id]);
-                  }}
-                  onTouchStart={(e) => {
-                    // mobile lo long press kosam
-                    const timer = setTimeout(() => setSelectedChats([chat.id]), 600);
-                    e.currentTarget.timer = timer;
-                  }}
-                  onTouchEnd={(e) => clearTimeout(e.currentTarget.timer)}
+                  onContextMenu={(e) => { e.preventDefault(); setSelectedChats([chat.id]); }}
                   style={{
                     display: "flex",
                     gap: "14px",
@@ -337,8 +358,9 @@ function App() {
                     background: selectedChats.includes(chat.id) ? "#D7B78F" : "white",
                     borderRadius: "12px",
                     marginBottom: "10px",
-                    border: selectedChats.includes(chat.id) ? "2px solid #5C3317" : "none"
-                  }}>                  <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#F5E6C8", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    border: selectedChats.includes(chat.id) ? "2px solid #5C3317" : "1px solid transparent"
+                  }}>
+                  <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#F5E6C8", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     {chat.image ? <img src={chat.image} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ fontWeight: "bold", color: "#5C3317", fontSize: "20px" }}>{chat.name[0]?.toUpperCase()}</div>}
                   </div>
                   <div style={{ flex: 1 }}>
@@ -348,9 +370,27 @@ function App() {
                     </div>
                     <span style={{ fontSize: "13px", color: "#8B7355", marginTop: "2px", display: "block" }}>Tap to start chatting</span>
                   </div>
+                  {/* CHECKMARK - RIGHT SIDE */}
+                  {selectedChats.includes(chat.id) ? (
+                    <div style={{ width: "26px", height: "26px", background: "#22c55e", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "14px", fontWeight: "bold", flexShrink: 0 }}>✓</div>
+                  ) : null}
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {/* DELETE POPUP */}
+        {showDeletePopup && (
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.45)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+            <div style={{ background: "#1F1F1F", width: "100%", maxWidth: "340px", borderRadius: "18px", padding: "22px", color: "white" }}>
+              <h3 style={{ margin: "0 0 10px 0", fontSize: "20px" }}>Delete this chat?</h3>
+              <p style={{ color: "#aaa", fontSize: "14px", lineHeight: "20px", margin: 0 }}></p>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "22px", marginTop: "22px" }}>
+                <span onClick={() => setShowDeletePopup(false)} style={{ color: "#81C784", fontWeight: "600", cursor: "pointer", fontSize: "15px" }}>Cancel</span>
+                <span onClick={() => { setChats(chats.filter(c => !selectedChats.includes(c.id))); setSelectedChats([]); setShowDeletePopup(false); }} style={{ color: "#81C784", fontWeight: "600", cursor: "pointer", fontSize: "15px" }}>Delete chat</span>
+              </div>
+            </div>
           </div>
         )}
 
