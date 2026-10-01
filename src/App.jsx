@@ -14,14 +14,15 @@ function App() {
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
   const videoInputRef = useRef(null)
+  const newChatFileRef = useRef(null)
   const [selectedImages, setSelectedImages] = useState([])
   const [selectedFileName, setSelectedFileName] = useState("")
+  const [newChatImage, setNewChatImage] = useState(null)
   const [inputText, setInputText] = useState("")
   const [chatMessages, setChatMessages] = useState([])
   const [isChatStarted, setIsChatStarted] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const [activeTab, setActiveTab] = useState("home")
-  const [selectedChat, setSelectedChat] = useState(null)
   const clearAndGo = (nextPage) => {
     setEmail(""); setPassword(""); setConfirmPassword("");
     setSignupError(""); setLoginError(""); setPage(nextPage);
@@ -33,31 +34,19 @@ function App() {
     setChatMessages(prev => [...prev, userMsg]);
     setIsChatStarted(true);
     const promptText = inputText.trim();
-    setInputText(""); setSelectedImages([]); setSelectedFileName(""); setIsTyping(true);
+    setInputText(""); setSelectedImages([]); setSelectedFileName(""); setShowPlus(false); setIsTyping(true);
     const cleanPrompt = promptText;
     const lower = cleanPrompt.toLowerCase();
     const hasImages = userMsg.images && userMsg.images.length > 0;
     const isVideo = lower.includes("video");
-    const isImageToPrompt = hasImages;
-    if (isImageToPrompt) {
-      let promptTextOut = `Aesthetic photo of ${(userMsg.fileName || "uploaded image").replace(/\.[^/.]+$/, "")}, highly detailed, 8k, cinematic lighting, photorealistic`;
-      try {
-        const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent("Describe this image for AI generation: " + cleanPrompt)}`);
-        if (res.ok) { const t = await res.text(); if (t) promptTextOut = t; }
-      } catch (e) { }
+    if (hasImages) {
+      let promptTextOut = `Aesthetic photo of ${(userMsg.fileName || "uploaded image").replace(/\.[^/.]+$/, "")}, highly detailed, 8k`;
       setChatMessages(prev => [...prev, { type: 'ai', text: `📝 Generated Prompt:\n\n${promptTextOut}`, isPrompt: true }]);
       setIsTyping(false);
     } else if (isVideo) {
-      let videoPrompt = cleanPrompt.replace(/\bvideo\b/gi, '').trim() || "beautiful nature";
-      let h = 0; for (let i = 0; i < videoPrompt.length; i++) { h = videoPrompt.charCodeAt(i) + ((h << 5) - h); }
+      let h = 0; for (let i = 0; i < cleanPrompt.length; i++) { h = cleanPrompt.charCodeAt(i) + ((h << 5) - h); }
       const mySeed = Math.abs(h);
-      const isGirlVideo = lower.includes("girl") || lower.includes("college") || lower.includes("woman");
-      let videoUrl;
-      if (isGirlVideo) {
-        videoUrl = `https://source.unsplash.com/768x768/?college,girl,garden,portrait&sig=${mySeed}`;
-      } else {
-        videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(videoPrompt + " cinematic video style")}?width=768&height=768&seed=${mySeed}&model=turbo&nologo=true`;
-      }
+      const videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt + " cinematic")}?width=768&height=768&seed=${mySeed}&model=turbo&nologo=true`;
       setTimeout(() => {
         setChatMessages(prev => [...prev, { type: 'ai', text: 'Video generated 🎬', videoUrl: videoUrl, isVideo: true }]);
         setIsTyping(false);
@@ -65,15 +54,12 @@ function App() {
     } else {
       let h = 0; for (let i = 0; i < cleanPrompt.length; i++) { h = cleanPrompt.charCodeAt(i) + ((h << 5) - h); }
       const mySeed = Math.abs(h);
-      const isGirlPrompt = lower.includes("girl") || lower.includes("college") || lower.includes("woman") || lower.includes("lady") || lower.includes("female");
+      const isGirlPrompt = lower.includes("girl") || lower.includes("college") || lower.includes("woman");
       let imageUrl;
       if (isGirlPrompt) {
-        const safeQuery = cleanPrompt.toLowerCase().replace(/girl/g, "woman").replace(/college girl/g, "college woman portrait");
-        imageUrl = `https://source.unsplash.com/768x768/?${encodeURIComponent(safeQuery + " beautiful portrait garden")}&sig=${mySeed}`;
+        imageUrl = `https://source.unsplash.com/768x768/?college,woman,portrait&sig=${mySeed}`;
       } else {
-        let safePrompt = cleanPrompt;
-        if (lower.includes("sun")) safePrompt = safePrompt + ", bright sunny day, beautiful sky, 8k";
-        imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(safePrompt)}?width=768&height=768&seed=${mySeed}&model=turbo&nologo=true&nofeed=true`;
+        imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=768&height=768&seed=${mySeed}&model=turbo&nologo=true&nofeed=true`;
       }
       setTimeout(() => {
         setChatMessages(prev => [...prev, { type: 'ai', text: 'Image generated ✨', imageUrl: imageUrl, isImage: true }]);
@@ -85,6 +71,7 @@ function App() {
   const handleImageSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name); setShowPlus(false); } }
   const handleCameraSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name || "camera_photo.jpg"); setShowPlus(false); } }
   const handleVideoSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name || "video.mp4"); setShowPlus(false); } }
+  const handleNewChatImage = (e) => { const file = e.target.files[0]; if (file) { setNewChatImage(URL.createObjectURL(file)); } }
 
   const handleLogin = () => {
     setLoginError(""); if (!email || !password) { setLoginError("Email/Mobile and Password ivvu mawa!"); return; }
@@ -158,7 +145,7 @@ function App() {
   if (page === "dashboard") {
     return (
       <div style={{ background: "#FFF8E7", minHeight: "100vh", paddingBottom: "90px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        {/* HEADER WITH NEW CHAT ICON */}
+        {/* HEADER */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", width: "100%", maxWidth: "400px", boxSizing: "border-box" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div style={{ width: "55px", height: "55px", background: "#FFFFFF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -167,45 +154,83 @@ function App() {
             <h1 style={{ color: "#5C3317", fontSize: "35px", fontWeight: "bold", margin: 0, fontFamily: "'Brush Script MT',cursive" }}>HearAgain</h1>
           </div>
           {activeTab === "chat" && (
-            <div onClick={() => { setSelectedImages([]); setSelectedFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; setActiveTab("newChat"); }} style={{ cursor: "pointer", width: "38px", height: "38px", borderRadius: "10px", border: "1.5px solid #4B2A15", display: "flex", alignItems: "center", justifyContent: "center", background: "white" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B2A15" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
+            <div onClick={() => { setNewChatImage(null); setActiveTab("newChat"); }} style={{ cursor: "pointer", width: "38px", height: "38px", borderRadius: "10px", border: "1.5px solid #4B2A15", display: "flex", alignItems: "center", justifyContent: "center", background: "white" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B2A15" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
             </div>
           )}
         </div>
 
-        {isChatStarted && activeTab === "home" && (
-          <div style={{ width: "90%", maxWidth: "400px", marginTop: "20px" }}>
-            {chatMessages.map((msg, i) => (
-              <div key={i} style={{ background: msg.type === 'user' ? '#5C3317' : 'white', color: msg.type === 'user' ? 'white' : '#5C3317', padding: '10px', borderRadius: '12px', marginBottom: '10px' }}>
-                <div style={{ whiteSpace: "pre-wrap" }}>{msg.text}</div>
-                {msg.images && msg.images.map((im, idx) => (<img key={idx} src={im} style={{ width: "100%", borderRadius: "10px", marginTop: "8px" }} />))}
-                {msg.imageUrl && (
-                  <div style={{ width: "100%", borderRadius: "12px", marginTop: "10px", border: "1px solid #F3E8D3", overflow: "hidden", background: "#fff" }}>
-                    <img src={msg.imageUrl} style={{ width: "100%", height: "auto", display: "block", minHeight: "200px" }} alt="generated" />
+        {/* HOME TAB - INPUT BOX RESTORED */}
+        {activeTab === "home" && (
+          <div style={{ width: "100%", maxWidth: "400px", display: "flex", flexDirection: "column", flex: 1, padding: "0 16px" }}>
+            <div style={{ flex: 1, overflowY: "auto", marginTop: "10px" }}>
+              {chatMessages.map((msg, i) => (
+                <div key={i} style={{ background: msg.type === 'user' ? '#5C3317' : 'white', color: msg.type === 'user' ? 'white' : '#5C3317', padding: '10px', borderRadius: '12px', marginBottom: '10px' }}>
+                  <div style={{ whiteSpace: "pre-wrap" }}>{msg.text}</div>
+                  {msg.images && msg.images.map((im, idx) => (<img key={idx} src={im} style={{ width: "100%", borderRadius: "10px", marginTop: "8px" }} />))}
+                  {msg.imageUrl && (<div style={{ width: "100%", borderRadius: "12px", marginTop: "10px", border: "1px solid #F3E8D3", overflow: "hidden", background: "#fff" }}><img src={msg.imageUrl} style={{ width: "100%", height: "auto", display: "block" }} alt="generated" /></div>)}
+                  {msg.videoUrl && (<div style={{ width: "100%", borderRadius: "12px", marginTop: "10px", overflow: "hidden", border: "1px solid #F3E8D3" }}><img src={msg.videoUrl} style={{ width: "100%", height: "auto" }} alt="video" /></div>)}
+                </div>
+              ))}
+              {!isChatStarted && (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", position: "relative", width: "100%", flex: 1, height: "65vh", overflow: "hidden" }}>
+                  {/* LOGO - SCREEN MIDDLE LO, PEDDAGA */}
+                  <img src={logo} alt="bg-logo" style={{ width: "500px", height: "500px", objectFit: "contain", opacity: 0.13, position: "absolute", top: "40%", left: "50%", transform: "translate(-50%, -50%)", pointerEvents: "none" }} />
+                  <p style={{ color: "#3E2723", fontWeight: "700", fontSize: "20px", fontFamily: "serif", position: "relative", zIndex: 1, marginTop: "120px" }}>What do you want to create today?</p>
+                </div>
+              )}
+            </div>
+
+            {/* PREVIEW IMAGES */}
+            {selectedImages.length > 0 && (
+              <div style={{ display: "flex", gap: "8px", marginBottom: "10px", overflowX: "auto" }}>
+                {selectedImages.map((im, idx) => (
+                  <div key={idx} style={{ position: "relative" }}>
+                    <img src={im} style={{ width: "60px", height: "60px", borderRadius: "8px", objectFit: "cover" }} />
+                    <div onClick={() => setSelectedImages(selectedImages.filter((_, i) => i !== idx))} style={{ position: "absolute", top: "-6px", right: "-6px", background: "black", color: "white", borderRadius: "50%", width: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", cursor: "pointer" }}>✕</div>
                   </div>
-                )}
-                {msg.videoUrl && (
-                  <div style={{ width: "100%", borderRadius: "12px", marginTop: "10px", overflow: "hidden", border: "1px solid #F3E8D3" }}>
-                    <img src={msg.videoUrl} style={{ width: "100%", height: "auto" }} alt="video" />
-                    <div style={{ padding: "8px", fontSize: "12px", textAlign: "center" }}>🎬 Cinematic preview</div>
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
-            {isTyping && <p style={{ color: "#8D6E63", fontSize: "13px" }}>Generating...</p>}
+            )}
+
+            {/* PLUS OPTIONS */}
+            {showPlus && (
+              <div style={{ background: "white", borderRadius: "16px", padding: "12px", display: "flex", gap: "20px", marginBottom: "10px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
+                <div onClick={() => cameraInputRef.current?.click()} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
+                  <div style={{ width: "44px", height: "44px", background: "#F3E5C6", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>📷</div>
+                  <span style={{ fontSize: "11px", marginTop: "4px", color: "#5C3317" }}>Camera</span>
+                </div>
+                <div onClick={() => fileInputRef.current?.click()} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
+                  <div style={{ width: "44px", height: "44px", background: "#F3E5C6", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🖼️</div>
+                  <span style={{ fontSize: "11px", marginTop: "4px", color: "#5C3317" }}>Photos</span>
+                </div>
+                <div onClick={() => videoInputRef.current?.click()} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
+                  <div style={{ width: "44px", height: "44px", background: "#F3E5C6", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🎥</div>
+                  <span style={{ fontSize: "11px", marginTop: "4px", color: "#5C3317" }}>Video</span>
+                </div>
+              </div>
+            )}
+
+            {/* INPUT BOX - Nee photo lo green mark chesindi */}
+            <div style={{ background: "white", borderRadius: "30px", padding: "6px 6px 6px 12px", display: "flex", alignItems: "center", gap: "8px", boxShadow: "0 2px 10px rgba(0,0,0,0.08)", border: "1px solid #F3E5C6", marginBottom: "10px" }}>
+              <div onClick={() => setShowPlus(!showPlus)} style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#FFF8E7", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "20px", color: "#5C3317" }}>
+                {showPlus ? "✕" : "+"}
+              </div>
+              <input value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendMessage()} placeholder="Describe what you want to create..." style={{ flex: 1, border: "none", outline: "none", fontSize: "15px", color: "#5C3317", background: "transparent" }} />
+              <div onClick={handleSendMessage} style={{ width: "40px", height: "40px", borderRadius: "50%", background: "#3E2723", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z" /></svg>
+              </div>
+            </div>
+            <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" style={{ display: "none" }} />
+            <input type="file" ref={cameraInputRef} onChange={handleCameraSelect} accept="image/*" capture="environment" style={{ display: "none" }} />
+            <input type="file" ref={videoInputRef} onChange={handleVideoSelect} accept="video/*" style={{ display: "none" }} />
           </div>
         )}
 
         {activeTab === "chat" && (
           <div style={{ background: "#FFF8E7", width: "100%", maxWidth: "400px", padding: "0 16px" }}>
             <div style={{ background: "#F3E5C6", borderRadius: "12px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px", marginTop: "4px", marginBottom: "16px" }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7355" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="6" />
-                <line x1="16.5" y1="16.5" x2="21" y2="21" />
-              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7355" strokeWidth="2"><circle cx="11" cy="11" r="6" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>
               <input placeholder="Search" style={{ border: "none", background: "transparent", outline: "none", flex: 1, color: "#5C3317", fontSize: "15px" }} />
             </div>
             {chatMessages.length === 0 ? (
@@ -215,16 +240,14 @@ function App() {
                 <p style={{ color: "#8B7355", fontSize: "14px", margin: 0 }}>Start a conversation to see it here</p>
               </div>
             ) : (
-              <div onClick={() => setActiveTab("chatDetail")} style={{ display: "flex", gap: "14px", padding: "14px 12px", borderBottom: "1px solid #F5E6C8", cursor: "pointer", alignItems: "center", background: "white", borderRadius: "12px" }}>
+              <div style={{ display: "flex", gap: "14px", padding: "14px 12px", borderBottom: "1px solid #F5E6C8", cursor: "pointer", alignItems: "center", background: "white", borderRadius: "12px" }}>
                 <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#F5E6C8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>🦻</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span style={{ fontWeight: "700", color: "#5C3317", fontSize: "16px" }}>HearAgain Assistant</span>
                     <span style={{ fontSize: "12px", color: "#8B7355" }}>Now</span>
                   </div>
-                  <span style={{ fontSize: "13px", color: "#8B7355", width: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block", marginTop: "2px" }}>
-                    {chatMessages[chatMessages.length - 1]?.text || "Image"}
-                  </span>
+                  <span style={{ fontSize: "13px", color: "#8B7355", width: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block", marginTop: "2px" }}>{chatMessages[chatMessages.length - 1]?.text || "Image"}</span>
                 </div>
               </div>
             )}
@@ -234,48 +257,25 @@ function App() {
         {activeTab === "newChat" && (
           <div style={{ width: "100%", maxWidth: "400px", padding: "0 16px", background: "#FFF8E7", flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 0 20px 0" }}>
-              <div onClick={() => { setSelectedImages([]); setSelectedFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; setActiveTab("chat"); }} style={{ cursor: "pointer", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div onClick={() => { setNewChatImage(null); if (newChatFileRef.current) newChatFileRef.current.value = ""; setActiveTab("chat"); }} style={{ cursor: "pointer", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
               </div>
               <h2 style={{ margin: 0, color: "#3E2723", fontSize: "24px", fontWeight: "700" }}>New Chat</h2>
             </div>
-
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                width: "100%",
-                height: "240px",
-                border: "2px dashed #A0826D",
-                borderRadius: "20px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                background: "#FFFBF0",
-                gap: "12px",
-                overflow: "hidden",
-                position: "relative"
-              }}
-            >
-              {selectedImages[0] ? (
+            <div onClick={() => newChatFileRef.current?.click()} style={{ width: "100%", height: "240px", border: "2px dashed #A0826D", borderRadius: "20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", background: "#FFFBF0", gap: "12px", overflow: "hidden", position: "relative" }}>
+              {newChatImage ? (
                 <div style={{ position: "relative", width: "100%", height: "100%" }}>
-                  <img src={selectedImages[0]} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "18px" }} />
-                  <div
-                    onClick={(e) => { e.stopPropagation(); setSelectedImages([]); setSelectedFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                    style={{ position: "absolute", top: "8px", right: "8px", width: "28px", height: "28px", background: "rgba(0,0,0,0.7)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", cursor: "pointer", fontSize: "16px" }}
-                  >
-                    ✕
-                  </div>
+                  <img src={newChatImage} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "18px" }} />
+                  <div onClick={(e) => { e.stopPropagation(); setNewChatImage(null); if (newChatFileRef.current) newChatFileRef.current.value = ""; }} style={{ position: "absolute", top: "8px", right: "8px", width: "28px", height: "28px", background: "rgba(0,0,0,0.7)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", cursor: "pointer", fontSize: "16px" }}>✕</div>
                 </div>
               ) : (
                 <>
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#3E2723" strokeWidth="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /><circle cx="17.5" cy="8.5" r="0.5" fill="#3E2723" /></svg>
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#3E2723" strokeWidth="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
                   <span style={{ color: "#8B7355", fontSize: "15px" }}>Tap to upload photo</span>
                 </>
               )}
             </div>
-            <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" style={{ display: "none" }} />
+            <input type="file" ref={newChatFileRef} onChange={handleNewChatImage} accept="image/*" style={{ display: "none" }} />
           </div>
         )}
 
@@ -285,12 +285,7 @@ function App() {
             <span style={{ background: activeTab === "home" ? "#5C3317" : "transparent", color: activeTab === "home" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Home</span>
           </div>
           <div onClick={() => setActiveTab("chat")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "chat" ? 1 : 0.6 }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M8 3h8a4 4 0 0 1 4 4v5a4 4 0 0 1-4 4h-2.5L9 20v-4H8a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4z" />
-              <circle cx="9.5" cy="9.5" r="1" fill="#5C3317" stroke="none" />
-              <circle cx="12" cy="9.5" r="1" fill="#5C3317" stroke="none" />
-              <circle cx="14.5" cy="9.5" r="1" fill="#5C3317" stroke="none" />
-            </svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.8"><path d="M8 3h8a4 4 0 0 1 4 4v5a4 4 0 0 1-4 4h-2.5L9 20v-4H8a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4z" /><circle cx="9.5" cy="9.5" r="1" fill="#5C3317" /><circle cx="12" cy="9.5" r="1" fill="#5C3317" /><circle cx="14.5" cy="9.5" r="1" fill="#5C3317" /></svg>
             <span style={{ background: activeTab === "chat" ? "#5C3317" : "transparent", color: activeTab === "chat" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Chat</span>
           </div>
           <div onClick={() => setActiveTab("voice")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "voice" ? 1 : 0.6 }}>
@@ -302,7 +297,7 @@ function App() {
             <span style={{ background: activeTab === "profile" ? "#5C3317" : "transparent", color: activeTab === "profile" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Profile</span>
           </div>
         </div>
-      </div >
+      </div>
     )
   }
   return (
