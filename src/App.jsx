@@ -71,11 +71,9 @@ function App() {
 
       let imageUrl;
       if (isGirlPrompt) {
-        // 3RD OPTION: Girl unte Unsplash - 100% no block
         const safeQuery = cleanPrompt.toLowerCase().replace(/girl/g, "woman").replace(/college girl/g, "college woman portrait");
         imageUrl = `https://source.unsplash.com/768x768/?${encodeURIComponent(safeQuery + " beautiful portrait garden")}&sig=${mySeed}`;
       } else {
-        // Normal prompts ki Pollinations AI
         let safePrompt = cleanPrompt;
         if (lower.includes("sun")) safePrompt = safePrompt + ", bright sunny day, beautiful sky, 8k";
         imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(safePrompt)}?width=768&height=768&seed=${mySeed}&model=turbo&nologo=true&nofeed=true`;
@@ -152,7 +150,6 @@ function App() {
           <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px" }}>This app is created only for <b>learning & helping purpose</b>. It is not intended to hurt anyone, any community or any beliefs. All data is safe & used only to improve your experience. Please use it respectfully.</p>
           <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px", marginTop: "10px" }}>ఈ యాప్ కేవలం నేర్చుకోవడం మరియు సహాయం చేయడం కోసం మాత్రమే రూపొందించబడింది. దీని ఉద్దేశ్యం ఎవరినీ, ఏ సమాజాన్ని లేదా ఏ నమ్మకాలను బాధపెట్టడం కాదు. డేటా అంతా సురక్షితంగా ఉంటుంది మరియు మీ అనుభవాన్ని మెరుగుపరచడానికి మాత్రమే ఉపయోగించబడుతుంది. దయచేసి దీనిని గౌరవప్రదంగా ఉపయోగించండి..</p>
           <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px", marginTop: "10px" }}>यह ऐप सिर्फ़ सीखने और मदद करने के मकसद से बनाया गया है। इसका मकसद किसी व्यक्ति, समुदाय या किसी की मान्यताओं को ठेस पहुँचाना नहीं है। सारा डेटा सुरक्षित है और इसका इस्तेमाल सिर्फ़ आपके अनुभव को बेहतर बनाने के लिए किया जाता है। कृपया इसका सम्मान के साथ इस्तेमाल करें।</p>
-
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "15px", width: "90%", maxWidth: "340px" }}>
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: "18px", height: "18px" }} id="tick" />
@@ -165,12 +162,24 @@ function App() {
   if (page === "dashboard") {
     return (
       <div style={{ background: "#FFF8E7", minHeight: "100vh", paddingBottom: "90px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "16px", width: "100%", maxWidth: "400px" }}>
-          <div style={{ width: "55px", height: "55px", background: "#FFFFFF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img src={logo} alt="logo" style={{ width: "200px", height: "200px", objectFit: "contain" }} />
+        {/* FIXED HEADER - HearAgain + New Chat icon same line */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", width: "100%", maxWidth: "400px", boxSizing: "border-box" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{ width: "55px", height: "55px", background: "#FFFFFF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img src={logo} alt="logo" style={{ width: "200px", height: "200px", objectFit: "contain" }} />
+            </div>
+            <h1 style={{ color: "#5C3317", fontSize: "35px", fontWeight: "bold", margin: 0, fontFamily: "'Brush Script MT',cursive" }}>HearAgain</h1>
           </div>
-          <h1 style={{ color: "#5C3317", fontSize: "35px", fontWeight: "bold", margin: 0, fontFamily: "'Brush Script MT',cursive" }}>HearAgain</h1>
+          {activeTab === "chat" && (
+            <div onClick={() => setActiveTab("newChat")} style={{ cursor: "pointer", width: "38px", height: "38px", borderRadius: "10px", border: "1.5px solid #4B2A15", display: "flex", alignItems: "center", justifyContent: "center", background: "white" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B2A15" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </div>
+          )}
         </div>
+
         {isChatStarted && (
           <div style={{ width: "90%", maxWidth: "400px", marginTop: "20px" }}>
             {chatMessages.map((msg, i) => (
@@ -193,15 +202,18 @@ function App() {
             {isTyping && <p style={{ color: "#8D6E63", fontSize: "13px" }}>Generating...</p>}
           </div>
         )}
+
         {activeTab === "chat" && (
           <div style={{ background: "#FFF8E7", width: "100%", maxWidth: "400px", padding: "0 16px" }}>
-            <div style={{ background: "#F3E5C6", borderRadius: "12px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px", marginTop: "12px", marginBottom: "16px" }}>
+            {/* SEARCH BAR - paike */}
+            <div style={{ background: "#F3E5C6", borderRadius: "12px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px", marginTop: "4px", marginBottom: "16px" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7355" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="6" />
                 <line x1="16.5" y1="16.5" x2="21" y2="21" />
               </svg>
               <input placeholder="Search" style={{ border: "none", background: "transparent", outline: "none", flex: 1, color: "#5C3317", fontSize: "15px" }} />
             </div>
+
             {chatMessages.length === 0 ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "60px", textAlign: "center" }}>
                 <div style={{ fontSize: "60px", marginBottom: "15px" }}>💬</div>
@@ -225,15 +237,11 @@ function App() {
           </div>
         )}
 
-        {/* BOTTOM NAV - ACTIVE LOGIC */}
         <div style={{ position: "fixed", bottom: "12px", left: "50%", transform: "translateX(-50%)", width: "92%", maxWidth: "400px", background: "#FFF8E7", borderRadius: "28px", display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 8px", boxShadow: "0 8px 25px rgba(0,0,0,0.12)", zIndex: 100 }}>
-
           <div onClick={() => setActiveTab("home")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "home" ? 1 : 0.6 }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill={activeTab === "home" ? "#5C3317" : "none"} stroke="#5C3317" strokeWidth="2"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
             <span style={{ background: activeTab === "home" ? "#5C3317" : "transparent", color: activeTab === "home" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Home</span>
           </div>
-
-          {/* Chat - dotted bubble like in your photo */}
           <div onClick={() => setActiveTab("chat")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "chat" ? 1 : 0.6 }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8 3h8a4 4 0 0 1 4 4v5a4 4 0 0 1-4 4h-2.5L9 20v-4H8a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4z" />
@@ -243,17 +251,14 @@ function App() {
             </svg>
             <span style={{ background: activeTab === "chat" ? "#5C3317" : "transparent", color: activeTab === "chat" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Chat</span>
           </div>
-
           <div onClick={() => setActiveTab("voice")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "voice" ? 1 : 0.6 }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><rect x="9" y="2" width="6" height="12" rx="3" fill={activeTab === "voice" ? "#5C3317" : "none"} /><path d="M5 10a7 7 0 0 0 14 0" /><line x1="12" y1="19" x2="12" y2="22" /><line x1="8" y1="22" x2="16" y2="22" /></svg>
             <span style={{ background: activeTab === "voice" ? "#5C3317" : "transparent", color: activeTab === "voice" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Voice Chat</span>
           </div>
-
           <div onClick={() => setActiveTab("profile")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "profile" ? 1 : 0.6 }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill={activeTab === "profile" ? "#5C3317" : "none"} stroke="#5C3317" strokeWidth="2"><circle cx="12" cy="7" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
             <span style={{ background: activeTab === "profile" ? "#5C3317" : "transparent", color: activeTab === "profile" ? "white" : "#5C3317", fontSize: "12px", padding: "4px 14px", borderRadius: "15px", marginTop: "4px", fontWeight: "600" }}>Profile</span>
           </div>
-
         </div>
       </div >
     )
@@ -268,4 +273,4 @@ function App() {
     </div>
   );
 }
-export default App;
+export default App;.
