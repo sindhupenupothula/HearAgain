@@ -193,71 +193,38 @@ function App() {
             {isTyping && <p style={{ color: "#8D6E63", fontSize: "13px" }}>Generating...</p>}
           </div>
         )}
-        {activeTab === "home" && (
-          <div style={{ width: "90%", maxWidth: "400px", background: "#FFFBEB", border: "1px solid #F3E8D3", borderRadius: "20px", padding: "12px 16px", margin: "20px auto", display: "flex", flexDirection: "column", gap: "10px", position: "relative" }}>
-            {selectedImages.length > 0 && (
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {selectedImages.map((img, index) => (
-                  <div key={index} style={{ position: "relative", width: "60px", height: "60px" }}>
-                    <img src={img} style={{ width: "60px", height: "60px", borderRadius: "12px", objectFit: "cover", border: "1px solid #F3E8D3" }} />
-                    <div onClick={() => setSelectedImages(selectedImages.filter((_, i) => i !== index))} style={{ position: "absolute", top: "-6px", right: "-6px", background: "black", color: "white", width: "18px", height: "18px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", cursor: "pointer" }}>✕</div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", width: "100%" }}>
-              <span onClick={() => setShowPlus(!showPlus)} style={{ fontSize: "30px", color: "#5C3317", cursor: "pointer", fontWeight: "300" }}>+</span>
-              <input value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Describe what you want to create..." style={{ flex: 1, border: "none", background: "transparent", outline: "none", color: "#5C3317", fontSize: "15px", marginLeft: "4px" }} />
-              <div onClick={handleSendMessage} style={{ width: "38px", height: "38px", background: "#5C3317", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                <span style={{ color: "white", fontSize: "18px", transform: "rotate(-45deg)" }}>➤</span>
-              </div>
-            </div>
-            {showPlus && (
-              <div style={{ position: "absolute", top: "60px", left: "0", background: "white", width: "180px", borderRadius: "16px", boxShadow: "0 8px 20px rgba(0,0,0,0.15)", padding: "8px", zIndex: 10, border: "1px solid #F3E8D3" }}>
-                <div onClick={() => fileInputRef.current.click()} style={{ padding: "12px", display: "flex", alignItems: "center", gap: "12px", cursor: "pointer" }}><span>🖼️</span> <span style={{ color: "#5C3317", fontSize: "14px" }}>Image</span></div>
-                <div onClick={() => cameraInputRef.current.click()} style={{ padding: "12px", display: "flex", alignItems: "center", gap: "12px", cursor: "pointer" }}><span>📷</span> <span style={{ color: "#5C3317", fontSize: "14px" }}>Camera</span></div>
-                <div onClick={() => videoInputRef.current.click()} style={{ padding: "12px", display: "flex", alignItems: "center", gap: "12px", cursor: "pointer" }}><span>🎥</span> <span style={{ color: "#5C3317", fontSize: "14px" }}>Video</span></div>
-              </div>
-            )}
-          </div>
-        )}
-        <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" style={{ display: "none" }} />
-        <input type="file" ref={cameraInputRef} onChange={handleCameraSelect} accept="image/*" style={{ display: "none" }} />
         {activeTab === "chat" && (
-          <div style={{ background: "#FFF8E7", minHeight: "100vh", paddingBottom: "90px" }}>
-
-            {/* Chat List Content */}
-            <div>
-              {chatMessages.length === 0 ? (
-                // Empty state - first time
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "100px", textAlign: "center" }}>
-                  <div style={{ fontSize: "60px", marginBottom: "15px" }}>💬</div>
-                  <p style={{ color: "#5C3317", fontWeight: "700", fontSize: "18px", margin: "0 0 6px 0" }}>No chats yet</p>
-                  <p style={{ color: "#8B7355", fontSize: "14px", margin: 0 }}>Start a conversation to see it here</p>
-                </div>
-              ) : (
-                // Nuvvu chat chesaka ikkada vastundi
-                <div onClick={() => setActiveTab("chatDetail")}
-                  style={{ display: "flex", gap: "14px", padding: "14px 20px", borderBottom: "1px solid #F5E6C8", cursor: "pointer", alignItems: "center" }}>
-
-                  <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#F5E6C8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>
-                    🦻
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ fontWeight: "700", color: "#5C3317", fontSize: "16px" }}>HearAgain Assistant</span>
-                      <span style={{ fontSize: "12px", color: "#8B7355" }}>Now</span>
-                    </div>
-                    <span style={{ fontSize: "13px", color: "#8B7355", width: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block", marginTop: "2px" }}>
-                      {chatMessages[chatMessages.length - 1]?.text}
-                    </span>
-                  </div>
-                </div>
-              )}
+          <div style={{ background: "#FFF8E7", width: "100%", maxWidth: "400px", padding: "0 16px" }}>
+            <div style={{ background: "#F3E5C6", borderRadius: "12px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px", marginTop: "12px", marginBottom: "16px" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7355" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="6" />
+                <line x1="16.5" y1="16.5" x2="21" y2="21" />
+              </svg>
+              <input placeholder="Search" style={{ border: "none", background: "transparent", outline: "none", flex: 1, color: "#5C3317", fontSize: "15px" }} />
             </div>
+            {chatMessages.length === 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "60px", textAlign: "center" }}>
+                <div style={{ fontSize: "60px", marginBottom: "15px" }}>💬</div>
+                <p style={{ color: "#5C3317", fontWeight: "700", fontSize: "18px", margin: "0 0 6px 0" }}>No chats yet</p>
+                <p style={{ color: "#8B7355", fontSize: "14px", margin: 0 }}>Start a conversation to see it here</p>
+              </div>
+            ) : (
+              <div onClick={() => setActiveTab("chatDetail")} style={{ display: "flex", gap: "14px", padding: "14px 12px", borderBottom: "1px solid #F5E6C8", cursor: "pointer", alignItems: "center", background: "white", borderRadius: "12px" }}>
+                <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#F5E6C8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>🦻</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ fontWeight: "700", color: "#5C3317", fontSize: "16px" }}>HearAgain Assistant</span>
+                    <span style={{ fontSize: "12px", color: "#8B7355" }}>Now</span>
+                  </div>
+                  <span style={{ fontSize: "13px", color: "#8B7355", width: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block", marginTop: "2px" }}>
+                    {chatMessages[chatMessages.length - 1]?.text || "Image"}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
+
         {/* BOTTOM NAV - ACTIVE LOGIC */}
         <div style={{ position: "fixed", bottom: "12px", left: "50%", transform: "translateX(-50%)", width: "92%", maxWidth: "400px", background: "#FFF8E7", borderRadius: "28px", display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 8px", boxShadow: "0 8px 25px rgba(0,0,0,0.12)", zIndex: 100 }}>
 
