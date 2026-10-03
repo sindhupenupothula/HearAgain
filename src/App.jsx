@@ -31,6 +31,22 @@ function App() {
   const [selectedChats, setSelectedChats] = useState([]);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
+  const handlePin = () => {
+    const updated = chats.map(c =>
+      selectedChats.includes(c.id) ? { ...c, isPinned: !c.isPinned } : c
+    );
+    setChats(updated);
+    setSelectedChats([]);
+  };
+
+  const handleMute = () => {
+    const updated = chats.map(c =>
+      selectedChats.includes(c.id) ? { ...c, isMuted: !c.isMuted } : c
+    );
+    setChats(updated);
+    setSelectedChats([]);
+  };
+
   useEffect(() => {
     if (currentUser) {
       const saved = localStorage.getItem(`chats_${currentUser}`);
@@ -182,8 +198,6 @@ function App() {
   if (page === "dashboard") {
     return (
       <div style={{ background: "#FFF8E7", minHeight: "100vh", paddingBottom: "90px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-
-        {/* HEADER - NORMAL vs SELECTED MODE */}
         {selectedChats.length > 0 && activeTab === "chat" ? (
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", width: "100%", maxWidth: "400px", boxSizing: "border-box", background: "#FFF8E7", borderBottom: "1px solid #F3E8D3" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
@@ -193,26 +207,18 @@ function App() {
               <span style={{ fontWeight: "700", fontSize: "19px", color: "#5C3317" }}>{selectedChats.length}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-
-              {/* PIN ICON - Clean */}
-              <div style={{ cursor: "pointer" }}>
+              <div onClick={handlePin} style={{ cursor: "pointer" }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><line x1="12" y1="17" x2="12" y2="22" /><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" /></svg>
               </div>
-
-              {/* DUSTBIN ICON - Clean */}
               <div onClick={() => setShowDeletePopup(true)} style={{ cursor: "pointer" }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
               </div>
-
-              {/* MUTE ICON - Clean */}
-              <div style={{ cursor: "pointer" }}>
+              <div onClick={handleMute} style={{ cursor: "pointer" }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M13 5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h3l4 4V5z" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
               </div>
-
             </div>
           </div>
         ) : (
-          // ... nee normal header code same undali
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", width: "100%", maxWidth: "400px", boxSizing: "border-box" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <div style={{ width: "55px", height: "55px", background: "#FFFFFF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -251,13 +257,12 @@ function App() {
                 )}
               </label>
               <input id="newChatFileInput" type="file" ref={newChatFileRef} onChange={handleNewChatImage} accept="image/*" style={{ display: "none" }} />
-
               <div style={{ marginTop: "28px", marginBottom: "24px" }}>
                 <label style={{ display: "block", fontSize: "16px", fontWeight: "600", color: "#3E2723", marginBottom: "10px" }}>Name</label>
                 <input value={newChatName} onChange={(e) => setNewChatName(e.target.value)} placeholder="Enter name" style={{ width: "100%", padding: "14px 16px", borderRadius: "12px", border: "1px solid #E0D0B0", background: "white", fontSize: "14px", outline: "none", boxSizing: "border-box" }} />
               </div>
               <div style={{ flex: 1 }}></div>
-              <button onClick={() => { if (newChatName.trim()) { const newChatObj = { id: Date.now(), name: newChatName, image: newChatImage }; setChats([...chats, newChatObj]); setNewChatName(""); setNewChatImage(null); if (newChatFileRef.current) newChatFileRef.current.value = ""; setShowNewChat(false); setActiveTab('chat'); } else { alert("Please enter name"); } }} style={{ width: "100%", padding: "16px", borderRadius: "12px", background: "#4B2E2A", color: "white", border: "none", fontSize: "16px", fontWeight: "600", cursor: "pointer" }}>
+              <button onClick={() => { if (newChatName.trim()) { const newChatObj = { id: Date.now(), name: newChatName, image: newChatImage, isPinned: false, isMuted: false }; setChats([...chats, newChatObj]); setNewChatName(""); setNewChatImage(null); if (newChatFileRef.current) newChatFileRef.current.value = ""; setShowNewChat(false); setActiveTab('chat'); } else { alert("Please enter name"); } }} style={{ width: "100%", padding: "16px", borderRadius: "12px", background: "#4B2E2A", color: "white", border: "none", fontSize: "16px", fontWeight: "600", cursor: "pointer" }}>
                 Create Chat
               </button>
             </div>
@@ -336,56 +341,33 @@ function App() {
                 <p style={{ color: "#8B7355", fontSize: "14px", margin: 0 }}>Start a conversation to see it here</p>
               </div>
             ) : (
-              chats.map((chat) => (
-                <div
-                  key={chat.id}
-                  onClick={() => {
-                    if (selectedChats.length > 0) {
-                      if (selectedChats.includes(chat.id)) {
-                        setSelectedChats(selectedChats.filter(id => id !== chat.id))
-                      } else {
-                        setSelectedChats([...selectedChats, chat.id])
-                      }
-                    }
-                  }}
-                  onContextMenu={(e) => { e.preventDefault(); setSelectedChats([chat.id]); }}
-                  style={{
-                    display: "flex",
-                    gap: "14px",
-                    padding: "14px 12px",
-                    cursor: "pointer",
-                    alignItems: "center",
-                    background: selectedChats.includes(chat.id) ? "#D7B78F" : "white",
-                    borderRadius: "12px",
-                    marginBottom: "10px",
-                    border: selectedChats.includes(chat.id) ? "2px solid #5C3317" : "1px solid transparent"
-                  }}>
+              [...chats].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0)).map((chat) => (
+                <div key={chat.id} onClick={() => { if (selectedChats.length > 0) { if (selectedChats.includes(chat.id)) { setSelectedChats(selectedChats.filter(id => id !== chat.id)) } else { setSelectedChats([...selectedChats, chat.id]) } } }} onContextMenu={(e) => { e.preventDefault(); setSelectedChats([chat.id]); }} style={{ display: "flex", gap: "14px", padding: "14px 12px", cursor: "pointer", alignItems: "center", background: selectedChats.includes(chat.id) ? "#D7B78F" : "white", borderRadius: "12px", marginBottom: "10px", border: selectedChats.includes(chat.id) ? "2px solid #5C3317" : "1px solid transparent" }}>
                   <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#F5E6C8", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     {chat.image ? <img src={chat.image} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ fontWeight: "bold", color: "#5C3317", fontSize: "20px" }}>{chat.name[0]?.toUpperCase()}</div>}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontWeight: "700", color: "#5C3317", fontSize: "16px" }}>{chat.name}</span>
-                      <span style={{ fontSize: "12px", color: "#8B7355" }}>Now</span>
+                      <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                        {chat.isPinned && <span style={{ fontSize: "14px" }}>📌</span>}
+                        {chat.isMuted && <span style={{ fontSize: "14px" }}>🔇</span>}
+                        <span style={{ fontSize: "12px", color: "#8B7355" }}>Now</span>
+                      </div>
                     </div>
                     <span style={{ fontSize: "13px", color: "#8B7355", marginTop: "2px", display: "block" }}>Tap to start chatting</span>
                   </div>
-                  {/* CHECKMARK - RIGHT SIDE */}
-                  {selectedChats.includes(chat.id) ? (
-                    <div style={{ width: "26px", height: "26px", background: "#22c55e", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "14px", fontWeight: "bold", flexShrink: 0 }}>✓</div>
-                  ) : null}
+                  {selectedChats.includes(chat.id) ? (<div style={{ width: "26px", height: "26px", background: "#22c55e", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "14px", fontWeight: "bold", flexShrink: 0 }}>✓</div>) : null}
                 </div>
               ))
             )}
           </div>
         )}
 
-        {/* DELETE POPUP */}
         {showDeletePopup && (
           <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.45)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
             <div style={{ background: "#1F1F1F", width: "100%", maxWidth: "340px", borderRadius: "18px", padding: "22px", color: "white" }}>
               <h3 style={{ margin: "0 0 10px 0", fontSize: "20px" }}>Delete this chat?</h3>
-              <p style={{ color: "#aaa", fontSize: "14px", lineHeight: "20px", margin: 0 }}></p>
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "22px", marginTop: "22px" }}>
                 <span onClick={() => setShowDeletePopup(false)} style={{ color: "#81C784", fontWeight: "600", cursor: "pointer", fontSize: "15px" }}>Cancel</span>
                 <span onClick={() => { setChats(chats.filter(c => !selectedChats.includes(c.id))); setSelectedChats([]); setShowDeletePopup(false); }} style={{ color: "#81C784", fontWeight: "600", cursor: "pointer", fontSize: "15px" }}>Delete chat</span>
@@ -394,12 +376,8 @@ function App() {
           </div>
         )}
 
-        {activeTab === "voice" && !showNewChat && (
-          <div style={{ padding: "40px" }}><h2 style={{ color: "#5C3317" }}>Voice Chat Coming Soon</h2></div>
-        )}
-        {activeTab === "profile" && !showNewChat && (
-          <div style={{ padding: "40px" }}><h2 style={{ color: "#5C3317" }}>Profile - {currentUser} <br /><button onClick={() => { setPage("welcome"); }}>Logout</button></h2></div>
-        )}
+        {activeTab === "voice" && !showNewChat && (<div style={{ padding: "40px" }}><h2 style={{ color: "#5C3317" }}>Voice Chat Coming Soon</h2></div>)}
+        {activeTab === "profile" && !showNewChat && (<div style={{ padding: "40px" }}><h2 style={{ color: "#5C3317" }}>Profile - {currentUser} <br /><button onClick={() => { setPage("welcome"); }}>Logout</button></h2></div>)}
 
         <div style={{ position: "fixed", bottom: "12px", left: "50%", transform: "translateX(-50%)", width: "92%", maxWidth: "400px", background: "#FFF8E7", borderRadius: "28px", display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 8px", boxShadow: "0 8px 25px rgba(0,0,0,0.12)", zIndex: 100 }}>
           <div onClick={() => setActiveTab("home")} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", opacity: activeTab === "home" ? 1 : 0.6 }}>
@@ -420,15 +398,16 @@ function App() {
           </div>
         </div>
       </div >
-    )
+    );
   }
   return (
-    <div style={{ background: "#FFF8E7", minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+    <div style={{ background: "#FFF8E7", minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
       <img src={logo} alt="HearAgain" style={{ width: "450px" }} />
-      <h1 style={{ fontFamily: "'Brush Script MT',cursive", color: "#5C3317", fontSize: "42px", marginTop: "10px" }}>HearAgain</h1>
-      <button onClick={() => clearAndGo("login")} style={{ background: "#5C3317", color: "white", width: "200px", height: "48px", borderRadius: "30px", border: "none", marginTop: "40px", fontSize: "18px", cursor: "pointer" }}>Login</button>
-      <p style={{ marginTop: "40px", color: "#8D6E63" }}>Don't have an account?</p>
-      <p onClick={() => clearAndGo("signup")} style={{ fontWeight: "bold", textDecoration: "underline", color: "#5C3317", cursor: "pointer" }}>Sign Up</p>
+      <h1 style={{ fontFamily: "'Brush Script MT', cursive", color: "#5C3317", fontSize: "42px", marginTop: "10px" }}>HearAgain</h1>
+      <button onClick={() => clearAndGo("login")} style={{ background: "#5C3317", color: "white", width: "200px", padding: "12px", borderRadius: "25px", border: "none", marginTop: "20px", cursor: "pointer" }}>Login</button>
+      <p onClick={() => clearAndGo("signup")} style={{ fontWeight: "bold", textDecoration: "underline", cursor: "pointer", color: "#5C3317", marginTop: "15px" }}>
+        Don't have an account? Sign up
+      </p>
     </div>
   );
 }
