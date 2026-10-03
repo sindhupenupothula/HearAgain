@@ -30,6 +30,37 @@ function App() {
   const [chatsLoaded, setChatsLoaded] = useState(false);
   const [selectedChats, setSelectedChats] = useState([]);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [openedChat, setOpenedChat] = useState(null);
+  const [detailInput, setDetailInput] = useState("");
+  const [detailMessages, setDetailMessages] = useState([]); // <-- NEW
+
+  const handleDetailSend = () => {
+    if (!detailInput.trim()) return;
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userMsg = { type: 'user', text: detailInput, time };
+    const newMsgs = [...detailMessages, userMsg];
+    setDetailMessages(newMsgs);
+    setDetailInput("");
+
+    // Auto reply logic
+    setTimeout(() => {
+      const lower = userMsg.text.toLowerCase();
+      let replyText = "Got it! Tell me more about your hearing?";
+
+      if (lower.includes("hi") || lower.includes("hello") || lower.includes("hey")) {
+        replyText = "Hello! I'm HearAgain Assistant. How can I help you with your hearing today?";
+      } else if (lower.includes("noisy") || lower.includes("cafe") || lower.includes("noise")) {
+        replyText = "That's common — background noise can be challenging. Here are 3 quick tips:\n• Face the person speaking\n• Use quieter seating near walls\n• Try HearAgain noise-filter mode";
+      } else if (lower.includes("yes") || lower.includes("tip")) {
+        replyText = "Here are 3 quick tips:\n• Face the person speaking and reduce distance\n• Use quieter seating near walls, away from speakers\n• Try the HearAgain noise-filter mode in Settings";
+      } else if (lower.includes("thank")) {
+        replyText = "You're welcome! Happy to help. Anything else?";
+      }
+
+      const botMsg = { type: 'bot', text: replyText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+      setDetailMessages(prev => [...prev, botMsg]);
+    }, 800);
+  };
 
   const handlePin = () => {
     const updated = chats.map(c =>
@@ -196,6 +227,43 @@ function App() {
     )
   }
   if (page === "dashboard") {
+    if (openedChat) {
+      return (
+        <div style={{ background: "#FFF8E7", minHeight: "100vh", width: "100%", maxWidth: "400px", margin: "0 auto", display: "flex", flexDirection: "column" }}>
+          {/* HEADER */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", background: "#FFF8E7", borderBottom: "1px solid #F3E8D3", position: "sticky", top: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div onClick={() => setOpenedChat(null)} style={{ cursor: "pointer", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+              </div>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#F5E6C8", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                {openedChat.image ? <img src={openedChat.image} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontWeight: "700", color: "#5C3317" }}>{openedChat.name[0]}</span>}
+              </div>
+              <div>
+                <p style={{ margin: 0, fontWeight: "700", color: "#3E2723", fontSize: "15px" }}>{openedChat.name === "logo" ? "HearAgain Assistant" : openedChat.name}</p>
+                <p style={{ margin: 0, fontSize: "11px", color: "#2E7D32", fontWeight: "600" }}>online ●</p>
+              </div>
+            </div>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 010 0.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15v1.92z" /></svg>
+          </div>
+
+          <div style={{ position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)", width: "95%", maxWidth: "380px", background: "#FFF8E7", padding: "10px 12px", display: "flex", alignItems: "center", gap: "10px", borderTop: "1px solid #F3E8D3", borderRadius: "30px", zIndex: 100 }}>
+            <div style={{ cursor: "pointer", display: "flex", flexShrink: 0 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><circle cx="9" cy="9" r="1" fill="#5C3317" /><circle cx="15" cy="9" r="1" fill="#5C3317" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /></svg>            </div>
+            <div style={{ cursor: "pointer", display: "flex", flexShrink: 0 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
+            </div>
+            <div style={{ cursor: "pointer", display: "flex", flexShrink: 0 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
+            </div>
+            <input value={detailInput} onChange={(e) => setDetailInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleDetailSend()} placeholder="Type a message" style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: "14px" }} />
+            <div onClick={handleDetailSend} style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#5C3317", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z" /></svg>
+            </div>
+          </div>
+        </div>
+      )
+    }
     return (
       <div style={{ background: "#FFF8E7", minHeight: "100vh", paddingBottom: "90px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         {selectedChats.length > 0 && activeTab === "chat" ? (
@@ -342,7 +410,12 @@ function App() {
               </div>
             ) : (
               [...chats].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0)).map((chat) => (
-                <div key={chat.id} onClick={() => { if (selectedChats.length > 0) { if (selectedChats.includes(chat.id)) { setSelectedChats(selectedChats.filter(id => id !== chat.id)) } else { setSelectedChats([...selectedChats, chat.id]) } } }} onContextMenu={(e) => { e.preventDefault(); setSelectedChats([chat.id]); }} style={{ display: "flex", gap: "14px", padding: "14px 12px", cursor: "pointer", alignItems: "center", background: selectedChats.includes(chat.id) ? "#D7B78F" : "white", borderRadius: "12px", marginBottom: "10px", border: selectedChats.includes(chat.id) ? "2px solid #5C3317" : "1px solid transparent" }}>
+                <div key={chat.id}
+                  onClick={() => {
+                    if (selectedChats.length > 0) { if (selectedChats.includes(chat.id)) { setSelectedChats(selectedChats.filter(id => id !== chat.id)) } else { setSelectedChats([...selectedChats, chat.id]) } } else {
+                      setOpenedChat(chat);
+                    }
+                  }} onContextMenu={(e) => { e.preventDefault(); setSelectedChats([chat.id]); }} style={{ display: "flex", gap: "14px", padding: "14px 12px", cursor: "pointer", alignItems: "center", background: selectedChats.includes(chat.id) ? "#D7B78F" : "white", borderRadius: "12px", marginBottom: "10px", border: selectedChats.includes(chat.id) ? "2px solid #5C3317" : "1px solid transparent" }}>
                   <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#F5E6C8", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     {chat.image ? <img src={chat.image} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ fontWeight: "bold", color: "#5C3317", fontSize: "20px" }}>{chat.name[0]?.toUpperCase()}</div>}
                   </div>
