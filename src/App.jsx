@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import logo from "./assets/logo.png"
+import EmojiPicker from 'emoji-picker-react';
 
 function App() {
   const [page, setPage] = useState("welcome")
@@ -40,6 +41,8 @@ function App() {
   const mediaRecorderRef = useRef(null);
   const recordingIntervalRef = useRef(null);
   const recordingTimeRef = useRef(0);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [message, setMessage] = useState("");
   const handleCameraClick = () => {
     chatFileRef.current?.click(); // FIXED
   }
@@ -326,11 +329,24 @@ function App() {
             ))}
           </div>
 
-
+          {/* EMOJI PICKER - WhatsApp laaga */}
+          {/* EMOJI PICKER - WhatsApp HD */}
+          {showEmojiPicker && (
+            <div style={{ position: "fixed", bottom: "70px", left: "50%", transform: "translateX(-50%)", width: "95%", maxWidth: "400px", background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 -2px 20px rgba(0,0,0,0.15)", zIndex: 150 }}>
+              <EmojiPicker
+                onEmojiClick={(e) => setMessage(prev => prev + e.emoji)}
+                width="100%"
+                height={350}
+                theme="light"
+                previewConfig={{ showPreview: false }}
+              />
+            </div>
+          )}
           {/* BOTTOM BAR - FIXED */}
           <div style={{ position: "fixed", bottom: 10, left: "50%", transform: "translateX(-50%)", width: "95%", maxWidth: "400px", background: "white", borderRadius: "30px", padding: "8px 12px", display: "flex", alignItems: "center", gap: "10px", boxShadow: "0 2px 10px rgba(0,0,0,0.1", border: "1px solid #F3E8D3" }}>
-            <div style={{ cursor: "pointer", display: "flex", flexShrink: 0 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2.5 4 2.5 4-2.5 4-2.5" /><circle cx="9" cy="9" r="1.2" fill="#5C3317" stroke="none" /><circle cx="15" cy="9" r="1.2" fill="#5C3317" stroke="none" /></svg>
+            {/* Emoji Button */}
+            <div onClick={() => setShowEmojiPicker(!showEmojiPicker)} style={{ cursor: "pointer", display: "flex" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
             </div>
             <input ref={chatFileRef} type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={handleFileSelect} />
             <div onClick={handleCameraClick} style={{ cursor: "pointer", display: "flex", flexShrink: 0 }}>
@@ -345,8 +361,7 @@ function App() {
                 <span style={{ fontSize: "12px", color: "#666", marginLeft: "8px" }}>Recording...</span>
               </div>
             ) : (
-              <input type="text" placeholder="Type a message..." style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: "15px" }} />
-            )}            <div onClick={handleVoiceRecord} style={{ cursor: "pointer", display: "flex", flexShrink: 0, background: isRecording ? "#FF3B30" : "transparent", borderRadius: "50%", padding: "6px" }}>
+              <input type="text" placeholder="Type a message..." value={message} onChange={(e) => setMessage(e.target.value)} style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: "14px" }} />)}            <div onClick={handleVoiceRecord} style={{ cursor: "pointer", display: "flex", flexShrink: 0, background: isRecording ? "#FF3B30" : "transparent", borderRadius: "50%", padding: "6px" }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isRecording ? "white" : "#5C3317"} strokeWidth="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
             </div>
             <div onClick={handleDetailSend} style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#5C3317", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
