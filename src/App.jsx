@@ -35,7 +35,11 @@ function App() {
   const [detailInput, setDetailInput] = useState("");
   const [detailMessages, setDetailMessages] = useState([]);
   const [caption, setCaption] = useState("");
-
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef(null);
+  const recordingIntervalRef = useRef(null);
+  const recordingTimeRef = useRef(0);
   const handleCameraClick = () => {
     chatFileRef.current?.click(); // FIXED
   }
@@ -79,7 +83,55 @@ function App() {
       setDetailMessages(prev => [...prev, botMsg]);
     }, 800);
   };
+  const handleVoiceRecord = async () => {
+    // Already recording aithe - AAPEY
+    if (isRecording) {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+      }
+      clearInterval(recordingIntervalRef.current);
+      setIsRecording(false);
+      setRecordingTime(0);
+      return;
+    }
 
+    // Recording START
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+
+      recorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      // Timer start
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+
+      recorder.ondataavailable = (e) => {
+        // voice message logic unte ikkada
+      };
+
+      recorder.onstop = () => {
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+    } catch (err) {
+      alert("Mic permission ivvu mawa!");
+      console.log(err);
+    }
+  };
+  // Send button tho record aapi pampedi
+  const handleStopAndSend = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+    }
+    clearInterval(recordingIntervalRef.current);
+    setIsRecording(false);
+    setRecordingTime(0);
+  };
   const handlePin = () => {
     const updated = chats.map(c => selectedChats.includes(c.id) ? { ...c, isPinned: !c.isPinned } : c);
     setChats(updated); setSelectedChats([]);
@@ -140,6 +192,17 @@ function App() {
   const handleImageSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name); setShowPlus(false); } }
   const handleCameraSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name || "camera_photo.jpg"); setShowPlus(false); } }
   const handleVideoSelect = (e) => { const file = e.target.files[0]; if (file) { setSelectedImages([...selectedImages, URL.createObjectURL(file)]); setSelectedFileName(file.name || "video.mp4"); setShowPlus(false); } }
+
+  const openPicker = (ref) => {
+    ref.current?.click();
+    const onFocusBack = () => {
+      setTimeout(() => {
+        setShowPlus(false);
+        window.removeEventListener('focus', onFocusBack);
+      }, 300);
+    };
+    window.addEventListener('focus', onFocusBack);
+  }
   const handleNewChatImage = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -210,6 +273,8 @@ function App() {
         <h2 style={{ color: "#5C3317", fontSize: "26px", marginTop: "20px", fontWeight: "700" }}>Terms & Conditions</h2>
         <div style={{ background: "white", width: "90%", maxWidth: "340px", height: "360px", overflowY: "auto", padding: "20px", borderRadius: "16px", marginTop: "20px", border: "1px solid #EFEBE9" }}>
           <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px" }}>This app is created only for <b>learning & helping purpose</b>. It is not intended to hurt anyone, any community or any beliefs. All data is safe & used only to improve your experience. Please use it respectfully.</p>
+          <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px", marginTop: "10px" }}>ఈ యాప్ కేవలం <b>నేర్చుకోవడం మరియు సహాయం చేయడం కోసం మాత్రమే రూపొందించబడింది</b>. దీని ఉద్దేశ్యం ఎవరినీ, ఏ సమాజాన్ని లేదా ఏ నమ్మకాలను బాధపెట్టడం కాదు. డేటా అంతా సురక్షితంగా ఉంటుంది మరియు మీ అనుభవాన్ని మెరుగుపరచడానికి మాత్రమే ఉపయోగించబడుతుంది. దయచేసి దీనిని గౌరవప్రదంగా ఉపయోగించండి..</p>
+          <p style={{ color: "#5C3317", fontSize: "14px", lineHeight: "22px", marginTop: "10px" }}>यह ऐप <b>सिर्फ़ सीखने और मदद करने के मकसद से बनाया गया है।</b> इसका मकसद किसी व्यक्ति, समुदाय या किसी की मान्यताओं को ठेस पहुँचाना नहीं है। सारा डेटा सुरक्षित है और इसका इस्तेमाल सिर्फ़ आपके अनुभव को बेहतर बनाने के लिए किया जाता है। कृपया इसका सम्मान के साथ इस्तेमाल करें।</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "15px", width: "90%", maxWidth: "340px" }}>
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: "18px", height: "18px" }} id="tick" />
@@ -222,7 +287,7 @@ function App() {
   if (page === "dashboard") {
     if (openedChat) {
       return (
-        <div style={{ background: "#FFF8E7", minHeight: "100vh", width: "100%", maxWidth: "400px", margin: "0 auto", display: "flex", flexDirection: "column" }}>
+        <div style={{ background: "#FFF8E7", minHeight: "100vh", width: "100%", maxWidth: "400px", margin: "0 auto", display: "flex", flexDirection: "column", overflow: "hidden" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", background: "#FFF8E7", borderBottom: "1px solid #F3E8D3", position: "sticky", top: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <div onClick={() => setOpenedChat(null)} style={{ cursor: "pointer", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -243,32 +308,51 @@ function App() {
           <div style={{ flex: 1, padding: "16px", overflowY: "auto", paddingBottom: "100px" }}>
             {detailMessages.map((msg, i) => (
               <div key={i} style={{ display: "flex", justifyContent: msg.type === 'user' ? "flex-end" : "flex-start", marginBottom: "12px" }}>
-                <div style={{ background: msg.type === 'user' ? "#5C3317" : "white", color: msg.type === 'user' ? "white" : "#5C3317", padding: "10px 14px", borderRadius: "18px", maxWidth: "240px" }}>
-                  {msg.image && <img src={msg.image} style={{ width: "200px", height: "200px", objectFit: "cover", borderRadius: "12px", display: "block" }} />}                  {msg.text && <div style={{ fontSize: "14px", whiteSpace: "pre-wrap" }}>{msg.text}</div>}
-                  <div style={{ fontSize: "10px", opacity: 0.6, textAlign: "right", marginTop: "4px" }}>{msg.time}</div>
+                <div style={{ background: msg.type === 'user' ? "#5C3317" : "white", color: msg.type === 'user' ? "white" : "#5C3317", padding: "5px", borderRadius: "16px", maxWidth: "240px" }}>
+                  {msg.image && <img src={msg.image} style={{ width: "220px", height: "220px", objectFit: "cover", borderRadius: "12px", display: "block" }} />}
+
+                  {msg.text && <div style={{ fontSize: "14px", whiteSpace: "pre-wrap", padding: "6px 8px" }}>{msg.text}</div>}
+
+                  {msg.audio && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: "180px", padding: "8px" }}>
+                      <div style={{ width: "36px", height: "36px", background: msg.type === 'user' ? "white" : "#5C3317", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: msg.type === 'user' ? "#5C3317" : "white", fontWeight: "bold" }}>▶</div>
+                      <audio src={msg.audio} controls style={{ width: "140px", height: "30px" }} />
+                    </div>
+                  )}
+
+                  <div style={{ fontSize: "10px", opacity: 0.6, textAlign: "right", marginTop: "4px", paddingRight: "4px" }}>{msg.time} {msg.duration ? `${msg.duration}s` : ""}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* BOTTOM BAR - YOUR OLD WORK SAFE */}
-          <div style={{ position: "fixed", bottom: 12, left: "50%", transform: "translateX(-50%)", width: "95%", maxWidth: "380px", background: "#FFF8E7", padding: "10px 12px", display: "flex", alignItems: "center", gap: "10px", borderTop: "1px solid #F3E8D3", borderRadius: "30px", zIndex: 100 }}>
+
+          {/* BOTTOM BAR - FIXED */}
+          <div style={{ position: "fixed", bottom: 10, left: "50%", transform: "translateX(-50%)", width: "95%", maxWidth: "400px", background: "white", borderRadius: "30px", padding: "8px 12px", display: "flex", alignItems: "center", gap: "10px", boxShadow: "0 2px 10px rgba(0,0,0,0.1", border: "1px solid #F3E8D3" }}>
             <div style={{ cursor: "pointer", display: "flex", flexShrink: 0 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><circle cx="9" cy="9" r="1" fill="#5C3317" /><circle cx="15" cy="9" r="1" fill="#5C3317" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2.5 4 2.5 4-2.5 4-2.5" /><circle cx="9" cy="9" r="1.2" fill="#5C3317" stroke="none" /><circle cx="15" cy="9" r="1.2" fill="#5C3317" stroke="none" /></svg>
             </div>
             <input ref={chatFileRef} type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={handleFileSelect} />
             <div onClick={handleCameraClick} style={{ cursor: "pointer", display: "flex", flexShrink: 0 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
             </div>
-            <div style={{ cursor: "pointer", display: "flex", flexShrink: 0 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
+            {isRecording ? (
+              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "8px", color: "red" }}>
+                <div style={{ width: "8px", height: "8px", background: "red", borderRadius: "50%" }}></div>
+                <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                  {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
+                </span>
+                <span style={{ fontSize: "12px", color: "#666", marginLeft: "8px" }}>Recording...</span>
+              </div>
+            ) : (
+              <input type="text" placeholder="Type a message..." style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: "15px" }} />
+            )}            <div onClick={handleVoiceRecord} style={{ cursor: "pointer", display: "flex", flexShrink: 0, background: isRecording ? "#FF3B30" : "transparent", borderRadius: "50%", padding: "6px" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isRecording ? "white" : "#5C3317"} strokeWidth="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
             </div>
-            <input value={detailInput} onChange={(e) => setDetailInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleDetailSend()} placeholder="Type a message" style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: "14px" }} />
             <div onClick={handleDetailSend} style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#5C3317", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z" /></svg>
             </div>
           </div>
-
           {selectedImages.length > 0 && (
             <div style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: "400px", height: "100vh", background: "#FFF8E7", zIndex: 9999, display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "16px", alignItems: "center" }}>
@@ -393,22 +477,22 @@ function App() {
               </div>
             )}
             {showPlus && (
-              <div style={{ background: "white", borderRadius: "16px", padding: "12px", display: "flex", gap: "20px", marginBottom: "10px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
-                <div onClick={() => cameraInputRef.current?.click()} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
+              <div style={{ background: "white", borderRadius: "30px", padding: "6px 6px 6px 12px", display: "flex", gap: "8px", marginBottom: "90px", boxShadow: "0 2px 10px rgba(0,0,0,0.08)" }}>
+                <div onClick={() => openPicker(cameraInputRef)} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
                   <div style={{ width: "44px", height: "44px", background: "#F3E5C6", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>📷</div>
-                  <span style={{ fontSize: "11px", marginTop: "4px", color: "#5C3317" }}>Camera</span>
+                  <span>Camera</span>
                 </div>
-                <div onClick={() => fileInputRef.current?.click()} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
+                <div onClick={() => openPicker(fileInputRef)} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
                   <div style={{ width: "44px", height: "44px", background: "#F3E5C6", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🖼️</div>
-                  <span style={{ fontSize: "11px", marginTop: "4px", color: "#5C3317" }}>Photos</span>
+                  <span>Photos</span>
                 </div>
-                <div onClick={() => videoInputRef.current?.click()} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
+                <div onClick={() => openPicker(videoInputRef)} style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
                   <div style={{ width: "44px", height: "44px", background: "#F3E5C6", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🎥</div>
-                  <span style={{ fontSize: "11px", marginTop: "4px", color: "#5C3317" }}>Video</span>
+                  <span>Video</span>
                 </div>
               </div>
             )}
-            <div style={{ background: "white", borderRadius: "30px", padding: "6px 6px 6px 12px", display: "flex", alignItems: "center", gap: "8px", boxShadow: "0 2px 10px rgba(0,0,0,0.08)", border: "1px solid #F3E5C6", marginBottom: "10px" }}>
+            <div style={{ background: "white", borderRadius: "30px", padding: "6px 6px 6px 12px", display: "flex", alignItems: "center", gap: "8px", boxShadow: "0 2px 10px rgba(0,0,0,0.08)", border: "1px solid #F3E5C6", marginBottom: "8px" }}>
               <div onClick={() => setShowPlus(!showPlus)} style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#FFF8E7", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "20px", color: "#5C3317" }}>
                 {showPlus ? "✕" : "+"}
               </div>
