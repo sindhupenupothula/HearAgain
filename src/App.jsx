@@ -43,6 +43,14 @@ function App() {
   const recordingTimeRef = useRef(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [message, setMessage] = useState("");
+  const [showCamera, setShowCamera] = useState(false);
+  const [facingMode, setFacingMode] = useState("environment");
+  const [cameraMode, setCameraMode] = useState("Photo");
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
+  const [isTorchOn, setIsTorchOn] = useState(false);
+
   const handleCameraClick = () => {
     chatFileRef.current?.click(); // FIXED
   }
@@ -85,6 +93,44 @@ function App() {
       const botMsg = { type: 'bot', text: replyText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
       setDetailMessages(prev => [...prev, botMsg]);
     }, 800);
+  };
+  const openCamera = async () => {
+    setShowCamera(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode },
+        audio: true
+      });
+      streamRef.current = stream;
+      setTimeout(() => { if (videoRef.current) videoRef.current.srcObject = stream; }, 100);
+    } catch (e) { console.log("Camera error", e); }
+  };
+
+  const closeCamera = () => {
+    setShowCamera(false);
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); }
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const dataUrl = canvas.toDataURL('image/jpeg');
+    // dataUrl ni chat lo image laaga pampali ante - neeku unna send function lo use chey
+    console.log(dataUrl);
+    closeCamera();
+    // setSelectedImage(dataUrl) - nee image send logic
+  };
+
+  const flipCamera = async () => {
+    const newMode = facingMode === "environment" ? "user" : "environment";
+    setFacingMode(newMode);
+    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: newMode } });
+    streamRef.current = stream;
+    if (videoRef.current) videoRef.current.srcObject = stream;
   };
   const handleVoiceRecord = async () => {
     // Already recording aithe - AAPEY
@@ -349,7 +395,7 @@ function App() {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
             </div>
             <input ref={chatFileRef} type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={handleFileSelect} />
-            <div onClick={handleCameraClick} style={{ cursor: "pointer", display: "flex", flexShrink: 0 }}>
+            <div onClick={openCamera} style={{ cursor: "pointer", display: "flex", flexShrink: 0 }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C3317" strokeWidth="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
             </div>
             {isRecording ? (
@@ -368,6 +414,42 @@ function App() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z" /></svg>
             </div>
           </div>
+          {/* CAMERA - App Size + All Buttons Working */}
+          {showCamera && (
+            <div style={{ position: "fixed", top: 0, bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: "400px", background: "#000", zIndex: 9999, display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 15px", background: "#3E2723" }}>
+                <div onClick={closeCamera} style={{ width: 36, height: 36, borderRadius: "50%", background: "#5D4037", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <span style={{ color: "white", fontSize: 20 }}>✕</span>
+                </div>
+                <div onClick={async () => { const t = streamRef.current?.getVideoTracks()[0]; if (t?.getCapabilities()?.torch) { const nt = !isTorchOn; await t.applyConstraints({ advanced: [{ torch: nt }] }); setIsTorchOn(nt); } }} style={{ width: 36, height: 36, borderRadius: "50%", background: "#5D4037", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+                </div>
+              </div>
+              <div style={{ flex: 1, position: "relative", background: "#3E2723" }}>
+                <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <canvas ref={canvasRef} style={{ display: "none" }} />
+              </div>
+
+              <div style={{ background: "#3E2723", padding: "15px 20px", display: "flex", alignItems: "center", justifyContent: "space-around" }}>
+                <div onClick={() => { if (chatFileRef.current) chatFileRef.current.click(); }} style={{ width: 45, height: 45, borderRadius: "50%", background: "#5D4037", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+                </div>
+
+                <div onClick={capturePhoto} style={{ width: 68, height: 68, borderRadius: "50%", border: "3px solid white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <div style={{ width: 54, height: 54, borderRadius: "50%", background: "#D7CCC8" }}></div>
+                </div>
+
+                <div onClick={flipCamera} style={{ width: 45, height: 45, borderRadius: "50%", background: "#5D4037", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 16h5v-5" /></svg>
+                </div>
+              </div>
+
+              <div style={{ background: "#3E2723", display: "flex", justifyContent: "center", gap: "25px", paddingBottom: "25px" }}>
+                <span onClick={() => setCameraMode("Video")} style={{ color: cameraMode === "Video" ? "#D7CCC8" : "#8D6E63", background: cameraMode === "Video" ? "#5D4037" : "transparent", padding: "5px 14px", borderRadius: 20, fontSize: 13, cursor: "pointer" }}>Video</span>
+                <span onClick={() => setCameraMode("Photo")} style={{ color: cameraMode === "Photo" ? "#D7CCC8" : "#8D6E63", background: cameraMode === "Photo" ? "#5D4037" : "transparent", padding: "5px 14px", borderRadius: 20, fontSize: 13, cursor: "pointer" }}>Photo</span>
+              </div>
+            </div>
+          )}
           {selectedImages.length > 0 && (
             <div style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: "400px", height: "100vh", background: "#FFF8E7", zIndex: 9999, display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "16px", alignItems: "center" }}>
